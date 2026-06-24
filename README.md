@@ -78,6 +78,13 @@ pip install -r requirements.txt
 ```env
 SECRET_KEY=your-django-secret-key
 
+DB_ENGINE='django.db.backends.postgresql'
+DB_NAME=your_db_name
+DB_LOGIN_ID=your_db_username
+DB_PASSWORD=your_db_user_password
+DB_HOST=your_db_host
+DB_PORT=your_db_port
+
 EMAIL_HOST_USER=your-email@gmail.com
 EMAIL_HOST_PASSWORD=your-email-app-password
 
@@ -91,37 +98,21 @@ HASHIDS_SALT=your-hashids-salt
 HASHIDS_MIN_LENGTH=8
 ```
 
-4. 建立 PostgreSQL 資料庫
-
-目前 `config/settings.py` 預設連線設定如下：
-
-```python
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "NGO_WEB",
-        "USER": "postgres",
-        "HOST": "localhost",
-        "PORT": "5432",
-    }
-}
-```
-
 請按本機 PostgreSQL 設定建立資料庫，或修改 `config/settings.py`。
 
-5. 執行 migration
+4. 執行 migration
 
 ```bash
 python manage.py migrate
 ```
 
-6. 建立 Django admin 帳號
+5. 建立 Django admin 帳號
 
 ```bash
 python manage.py createsuperuser
 ```
 
-7. 啟動開發伺服器
+6. 啟動開發伺服器
 
 ```bash
 python manage.py runserver
