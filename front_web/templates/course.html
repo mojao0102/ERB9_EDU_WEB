@@ -1,0 +1,157 @@
+{% extends "base.html" %} 
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<!-- 1.2 background -->
+<div class="relative h-[120px] bg-cover bg-center" 
+    style="background-image: url('{% static "img/banner/banner.jpg" %}');">
+</div>
+
+<!-- 2. Page Content -->
+<div class="max-w-3xl mx-auto p-8">
+{% include "partials/_alert.html" %}
+
+<!-- 課程圖片區 -->
+ {% if obj_course.photo %}
+<div class="w-full h-[180px] mx-auto my-5">
+    <img src="{{obj_course.photo.url}}" alt="{{obj_course.title}}" class="w-full h-full object-cover">
+</div>
+{% endif %}
+
+<!-- 課程標題 -->
+<h1 class="text-[#70c1d6] text-3xl md:text-4xl font-light mb-6">
+    {{obj_course.name}}
+</h1>
+<!-- 課程編號 -->
+<p class="text-gray-400 mb-6">課程編號: {{obj_course.code}}</p>
+
+{% if obj_course.course_dynamic_status == "報名中" %}
+<!-- 立即報名按鈕 -->
+<button id="openModalBtn" class="bg-[#70c1d6] text-white px-6 py-2 rounded-full flex items-center gap-2 mb-8 hover:opacity-90 transition-opacity">
+    <i class="fa-brands fa-leanpub fa-xl" style="color: #fff;"></i>
+    立即報名
+</button>
+{% elif obj_course.course_dynamic_status == "人數已滿" %}
+<!-- 報名已滿 -->
+<div class="mb-6">
+    <h3 class="font-bold text-lg mb-2 text-red-500">報名已滿！ 敬請留意下一期開始時間</h3>
+</div>
+{% endif %}
+
+<!-- 課程內容 -->
+<div class="mb-6">
+    <h3 class="font-bold text-lg mb-2">課程內容:</h3>
+    <p class="text-gray-800 leading-relaxed">
+    {{obj_course.content | linebreaks}}
+    </p>
+</div>
+
+<!-- 課程特色 -->
+<div class="mb-6">
+    <h3 class="font-bold text-lg mb-2">課程特色:</h3>
+    <ul class="list-disc pl-6 space-y-1 text-gray-800">
+        {% if obj_course.feature_1 %}<li>{{obj_course.feature_1}}</li>{% endif %}
+        {% if obj_course.feature_2 %}<li>{{obj_course.feature_2}}</li>{% endif %}
+        {% if obj_course.feature_3 %}<li>{{obj_course.feature_3}}</li>{% endif %}
+        {% if obj_course.feature_4 %}<li>{{obj_course.feature_4}}</li>{% endif %}
+        {% if obj_course.feature_5 %}<li>{{obj_course.feature_5}}</li>{% endif %}
+        {% if obj_course.feature_6 %}<li>{{obj_course.feature_6}}</li>{% endif %}
+        {% if obj_course.feature_7 %}<li>{{obj_course.feature_7}}</li>{% endif %}
+        {% if obj_course.feature_8 %}<li>{{obj_course.feature_8}}</li>{% endif %}
+    </ul>
+</div>
+
+<!-- 費用 -->
+<div class="mb-6">
+    <h3 class="font-bold text-lg mb-2">費用:</h3>
+    <p class="text-gray-800">${{obj_course.course_fee | floatformat:0}}</p>
+</div>
+
+<!-- 對象 -->
+<div class="mb-6">
+    <h3 class="font-bold text-lg mb-2">對象:</h3>
+    <p class="text-gray-800">{{obj_course.age_group}}</p>
+</div>
+
+<!-- 上課日期及時間 -->
+<div>
+    <h3 class="font-bold text-lg mb-2">上課日期及時間</h3>
+    <p class="text-gray-800">{{obj_course.period_from | date:"d/m/Y"}} – {{obj_course.period_to | date:"d/m/Y"}} ({{obj_course.time_from | date:"H:i"}}-{{obj_course.time_to | date:"H:i"}})</p>
+    <p class="text-gray-800">
+        {% if obj_course.lesson_weekday_pattern %}{{obj_course.lesson_weekday_pattern}}，{% endif %}共{{obj_course.total_lessons | floatformat:0}}堂
+    </p>
+</div>
+</div>
+
+<!-- 3. Pop up course application -->
+<div id="modalOverlay" class="fixed inset-0 bg-black/50 z-[999] hidden opacity-0 transition-opacity duration-300"></div>
+<div id="modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl p-8 w-11/12 max-w-md z-[1000] hidden opacity-0 transition-opacity duration-300">
+    <!-- 右上角關閉按鈕 -->
+    <button id="closeModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <i class="fa-solid fa-xmark text-3xl"></i>
+    </button>
+
+    <!-- 標題 -->
+    <h2 class="text-orange-500 text-2xl font-bold mb-6">請仔細核對以下資料</h2>
+
+    <!-- 課程資訊 -->
+    <div class="text-gray-700 text-lg space-y-2 mb-8">
+        <p class="font-medium">已選擇課程:</p>
+        <p class="text-gray-900">{{obj_course.name}}</p>
+        <p>課程編號: {{obj_course.code}}</p>
+        <p>日期: {{obj_course.period_from | date:"d/m/Y"}} – {{obj_course.period_to | date:"d/m/Y"}}</p>
+        <p>時間: {{obj_course.time_from | date:"H:i"}}-{{obj_course.time_to | date:"H:i"}}</p>
+        <p class="mt-4">{% if obj_course.lesson_weekday_pattern %}{{obj_course.lesson_weekday_pattern}}，{% endif %}共{{obj_course.total_lessons | floatformat:0}}堂</p>
+    </div>
+
+    <!-- 按鈕列 -->
+    <div class="flex justify-center gap-6">
+        <form id="ConfirmSignUp" action="{% url "front_web:course_payment" obj_course.hash_id %}" method="POST">
+        {% csrf_token %}
+            <button id="confirmModalBtn" class="bg-[#b4d26e] hover:bg-green-500 text-white px-8 py-4 rounded-full text-xl font-bold flex items-center gap-3">
+                <i class="fa-solid fa-check-circle text-2xl"></i> 確定報名
+            </button>
+        </form>
+        <button id="cancelModalBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-8 py-4 rounded-full text-xl font-bold">
+            取消
+        </button>
+    </div>
+</div>
+
+<script>
+// ========= Course pop up js ==================
+// 🔥 報名彈窗控制
+const openModalBtn = document.getElementById('openModalBtn');
+const modal = document.getElementById('modal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const confirmModalBtn = document.getElementById('confirmModalBtn');
+const cancelModalBtn = document.getElementById('cancelModalBtn');
+
+function openModal() {
+modalOverlay.classList.remove('hidden');
+modal.classList.remove('hidden');
+setTimeout(() => {
+    modalOverlay.classList.add('opacity-100');
+    modal.classList.add('opacity-100');
+}, 10);
+document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+modalOverlay.classList.remove('opacity-100');
+modal.classList.remove('opacity-100');
+setTimeout(() => {
+    modalOverlay.classList.add('hidden');
+    modal.classList.add('hidden');
+}, 300);
+document.body.style.overflow = '';
+}
+
+openModalBtn.addEventListener('click', openModal);
+closeModalBtn.addEventListener('click', closeModal);
+confirmModalBtn.addEventListener('click', closeModal);
+cancelModalBtn.addEventListener('click', closeModal);
+// ========= end of Course pop up js  ==================
+</script>
+{% endblock %}

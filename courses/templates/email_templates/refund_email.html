@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>退款處理完成通知</title>
+    <style>
+        body { font-family: Arial, 'Microsoft JhengHei', sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #eef2f5; }
+        .header { background-color: #f39c12; padding: 30px; text-align: center; } /* 橘黃色代表金流異動 */
+        .header h1 { color: #ffffff; margin: 0; font-size: 24px; }
+        .body { padding: 40px 30px; color: #334155; line-height: 1.7; }
+        .info-box { background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #f39c12; }
+        .info-row { margin-bottom: 8px; }
+        .info-label { font-weight: bold; color: #64748b; display: inline-block; width: 80px; }
+        .button-wrapper { text-align: center; margin: 35px 0; }
+        .cta-button { display: inline-block; padding: 14px 35px; background-color: #f39c12; color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: bold; text-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        .footer { background-color: #f8fafc; padding: 20px; text-align: center; font-size: 13px; color: #94a3b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header"><h1>退款處理完成</h1></div>
+        
+        <div class="body">
+            <h2>親愛的 {{ student.cn_name }} 同學，您好：</h2>
+            <p>中心已為您處理「{{ course.name }}」的退款手續，詳細資訊如下：</p>
+            
+            <div class="info-box">
+                <div class="info-row"><span class="info-label">退款金額：</span>${{ refund.refund_amount|floatformat:2 }}</div>
+                <div class="info-row"><span class="info-label">退款方式：</span>{{ refund.refund_method }}</div>
+                <div class="info-row"><span class="info-label">參考單號：</span>{{ refund.refund_ref }}</div>
+                <div class="info-row"><span class="info-label">退款原因：</span>{{ refund.refund_reason|default:"-" }}</div>
+                <div class="info-row"><span class="info-label">處理時間：</span>{{ refund.refund_date|date:"Y-m-d H:i" }}</div>
+            </div>
+
+            <p style="color: #e74c3c; font-size: 14px;"><strong>系統已將本筆退款的電子收據（PDF）作為附件夾帶於此信件中，請查收。</strong></p>
+            <p>若退款方式為線上刷退，款項預計需 5-10 個工作天退回至您的發卡銀行，再請您留意帳單明細。</p>
+            
+            <div class="button-wrapper">
+                <a href="{{ target_url }}" class="cta-button" target="_blank">登入查閱完整紀錄</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p style="margin-bottom: 5px; font-weight: bold;">© {{ center.name }} 敬上</p>
+            {% if center %}
+            <p style="margin-top: 5px; font-size: 12px; line-height: 1.6;">
+                {% if center.addr %}📍 {{ center.addr }}<br>{% endif %}
+                {% if center.phone %}📞 {{ center.phone }}{% endif %}
+                {% if center.email %} | ✉️ {{ center.email }}{% endif %}
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

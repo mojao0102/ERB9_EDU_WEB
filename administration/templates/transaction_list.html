@@ -1,0 +1,436 @@
+{% extends "staff_base.html" %} 
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<main class="md:ml-[200px] flex-1 p-8 pt-16 md:pt-8 bg-gray-50 min-h-screen">
+    {% include "partials/_alert.html" %} 
+    
+    <div class="flex justify-between items-end mb-6">
+        <h1 class="text-xl font-bold text-gray-800 flex items-center">
+            <i class="fa-solid fa-file-invoice-dollar text-blue-500 mr-4"></i> 交易記錄
+        </h1>
+    </div>    
+
+    <div class="mb-3 text-sm font-medium text-gray-500 flex items-center gap-2 bg-white px-4 py-2.5 rounded-lg border border-gray-200 shadow-sm w-fit">
+        <i class="fa-regular fa-calendar-check text-blue-500"></i>
+        <span>統計區間：<span class="text-gray-800 font-bold">{{ dict_input_data.date_from }}</span> 至 <span class="text-gray-800 font-bold">{{ dict_input_data.date_to }}</span></span>
+    </div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        
+        <div class="bg-white px-5 py-2 rounded-xl border border-gray-200 shadow-sm border-l-4 border-l-green-500 flex justify-between items-center">
+            <div>
+                <span class="text-xs font-medium text-gray-400 block mb-1">總收款</span>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-sm font-bold text-gray-800">${{ total_payment|floatformat:2|intcomma }}</span>
+                    <span class="text-[11px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded font-medium border border-green-100">
+                        {{ count_payment }} 筆
+                    </span>
+                </div>
+            </div>
+            <i class="fa-solid fa-arrow-trend-up text-3xl text-green-200"></i>
+        </div>    
+
+        <div class="bg-white px-5 py-2 rounded-xl border border-gray-200 shadow-sm border-l-4 border-l-red-500 flex justify-between items-center">
+            <div>
+                <span class="text-xs font-medium text-gray-400 block mb-1">總退款</span>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-sm font-bold text-red-600">-${{ total_refund|floatformat:2|intcomma }}</span>
+                    <span class="text-[11px] text-red-600 bg-red-50 px-1.5 py-0.5 rounded font-medium border border-red-100">
+                        {{ count_refund }} 筆
+                    </span>
+                </div>
+            </div>
+            <i class="fa-solid fa-arrow-trend-down text-3xl text-red-200"></i>
+        </div>
+
+        <div class="bg-white px-5 py-2 rounded-xl border border-gray-200 shadow-sm border-l-4 border-l-blue-500 flex justify-between items-center">
+            <div>
+                <span class="text-xs font-medium text-gray-400 block mb-1">淨收益</span>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-sm font-bold text-blue-600">${{ net_income|floatformat:2|intcomma }}</span>
+                    <span class="text-[11px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-medium border border-blue-100" title="總交易筆數 = 收款 + 退款">
+                        總計 {{ count_payment|add:count_refund }} 筆交易
+                    </span>
+                </div>
+            </div>
+            <i class="fa-solid fa-sack-dollar text-3xl text-blue-200"></i>
+        </div>
+
+    </div>
+
+    <form id="transForm" method="GET" action="{% url 'administration:transaction_list' %}" class="w-full">
+        <input type="hidden" name="sort_by" id="sort_by_input" value="{{ dict_input_data.sort_by|default:'trans_date' }}">
+        <input type="hidden" name="sort_dir" id="sort_dir_input" value="{{ dict_input_data.sort_dir|default:'desc' }}">
+
+        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-4">
+            <div class="flex flex-wrap items-center gap-3 text-sm">
+
+                <div class="flex items-center gap-2 border border-gray-200 bg-gray-50 px-3 py-1.5 rounded-lg">
+                    <span class="text-sm text-gray-500 font-medium">區間：</span>
+                    <input type="text" placeholder="YYYY-MM-DD" name="date_from" value="{{ dict_input_data.date_from }}" class="datepicker w-[80px] bg-transparent text-xs text-gray-700 font-medium focus:outline-none cursor-pointer">
+                    <span class="text-gray-400 text-sm">至</span>
+                    <input type="text" placeholder="YYYY-MM-DD" name="date_to" value="{{ dict_input_data.date_to }}" class="datepicker w-[80px] bg-transparent text-xs text-gray-700 font-medium focus:outline-none cursor-pointer">
+                </div>
+
+                <div class="relative flex-grow max-w-[200px]">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" name="txtkeyword" value="{{ dict_input_data.txtkeyword }}" placeholder="搜尋姓名、學號、Ref..." class="text-xs w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition">
+                </div>
+
+                <select name="TypeSelector" class="text-xs border border-gray-300 py-2 px-3 rounded-lg bg-white focus:outline-none focus:border-blue-400 cursor-pointer transition text-gray-700" onchange="submitForm()">
+                    <option value="" {% if dict_input_data.TypeSelector == '' %}selected{% endif %}>-- 交易類型 --</option>
+                    <option value="payment" {% if dict_input_data.TypeSelector == 'payment' %}selected{% endif %}>付款 (Payment)</option>
+                    <option value="refund" {% if dict_input_data.TypeSelector == 'refund' %}selected{% endif %}>退款 (Refund)</option>
+                </select>
+
+                <select name="MethodSelector" class="text-xs border border-gray-300 py-2 px-3 rounded-lg bg-white focus:outline-none focus:border-blue-400 cursor-pointer transition text-gray-700" onchange="submitForm()">
+                    <option value="" {% if dict_input_data.MethodSelector == '' %}selected{% endif %}>-- 交易方式 --</option>
+                    <option value="stripe" {% if dict_input_data.MethodSelector == 'stripe' %}selected{% endif %}>Stripe 線上</option>
+                    <option value="card" {% if dict_input_data.MethodSelector == 'card' %}selected{% endif %}>信用卡 Card</option>
+                    <option value="cash" {% if dict_input_data.MethodSelector == 'cash' %}selected{% endif %}>現金 Cash</option>
+                    <option value="bank_transfer" {% if dict_input_data.MethodSelector == 'bank_transfer' %}selected{% endif %}>銀行轉帳</option>
+                </select>
+
+                <select name="MainCategorySelector" class="text-xs border border-gray-300 py-2 px-3 rounded-lg bg-white focus:outline-none focus:border-blue-400 cursor-pointer max-w-[130px] transition text-gray-700" onchange="submitForm()">
+                    <option value=""{% if dict_input_data.MainCategorySelector == '' %}selected{% endif %}>-- 主類別 --</option>
+                    {% for obj_mc in list_maincategory %}
+                        <option value="{{ obj_mc.id }}" {% if dict_input_data.MainCategorySelector == obj_mc.id|stringformat:"s" %}selected{% endif %}>{{ obj_mc.short_name }}</option>
+                    {% endfor %}
+                </select>
+
+                <select name="SubCategorySelector" class="text-xs border border-gray-300 py-2 px-3 rounded-lg bg-white focus:outline-none focus:border-blue-400 cursor-pointer max-w-[160px] transition text-gray-700" onchange="submitForm()">
+                    <option value=""{% if dict_input_data.SubCategorySelector == '' %}selected{% endif %}>-- 子類別 --</option>
+                    {% for obj_sc in list_subcategory %}
+                        <option value="{{ obj_sc.id }}" {% if dict_input_data.SubCategorySelector == obj_sc.id|stringformat:"s" %}selected{% endif %}>[{{ obj_sc.main_category.short_name }}] {{ obj_sc.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="button" onclick="submitForm()" class="text-xs border border-gray-300 py-2 px-4 rounded hover:bg-gray-50 transition flex items-center gap-2 text-gray-600 font-medium">
+                    <i class="fa-solid fa-arrows-rotate mr-1"></i>重整
+                </button>
+                <button type="button" onclick="clearFilters()" class="text-xs border border-red-200 bg-red-50 py-2 px-4 rounded hover:bg-red-100 transition flex items-center gap-2 text-red-600 font-medium">
+                    <i class="fa-solid fa-xmark"></i> 清除
+                </button>
+
+                <div class="flex items-center gap-2 ml-auto">                  
+                    <div class="h-6 w-px bg-gray-200 mx-1"></div> 
+
+                    <button type="submit" formaction="{% url 'administration:transaction_export_csv' %}" class="text-xs border border-green-200 bg-green-50 py-2 px-4 rounded hover:bg-green-100 transition flex items-center gap-2 text-green-700 font-medium">
+                        <i class="fa-solid fa-file-csv"></i> 匯出 CSV
+                    </button>
+                
+                    <button type="submit" formaction="{% url 'administration:transaction_export_pdf' %}" formtarget="_blank" class="text-xs border border-gray-300 bg-white py-2 px-4 rounded hover:bg-gray-50 transition flex items-center gap-2 text-gray-700 font-medium">
+                        <i class="fa-solid fa-file-pdf text-red-500"></i> 報表 PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="table-auto w-full border-collapse">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[12%] cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('trans_date')">
+                                交易時間
+                                {% if dict_input_data.sort_by == 'trans_date' %}
+                                    <i class="fa-solid {% if dict_input_data.sort_dir == 'asc' %}fa-arrow-up-1-9{% else %}fa-arrow-down-9-1{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+
+                            <th class="py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[12%] cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('student_name')">
+                                學生姓名
+                                {% if dict_input_data.sort_by == 'student_name' %}
+                                    <i class="fa-solid {% if dict_input_data.sort_dir == 'asc' %}fa-arrow-up-a-z{% else %}fa-arrow-down-z-a{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[12%] cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('trans_amount')">
+                                金額 / 類型
+                                {% if dict_input_data.sort_by == 'trans_amount' %}
+                                    <i class="fa-solid {% if dict_input_data.sort_dir == 'asc' %}fa-arrow-up-1-9{% else %}fa-arrow-down-9-1{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[15%] cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('course_name')">
+                                對應課程
+                                {% if dict_input_data.sort_by == 'course_name' %}
+                                    <i class="fa-solid {% if dict_input_data.sort_dir == 'asc' %}fa-arrow-up-a-z{% else %}fa-arrow-down-z-a{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[10%] cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('trans_method')">
+                                收款/退款方式
+                                {% if dict_input_data.sort_by == 'trans_method' %}
+                                    <i class="fa-solid {% if dict_input_data.sort_dir == 'asc' %}fa-arrow-up-a-z{% else %}fa-arrow-down-z-a{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+
+                            <th class="py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[34%]">參考單號 (Stripe)</th>
+                            <th class="py-3 px-4 text-center text-gray-500 text-xs font-semibold uppercase tracking-wider w-[5%]">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for dict_trans in page_obj %}
+                        <tr class="hover:bg-gray-50 transition-colors text-sm text-gray-700">
+                            
+                            <td class="py-2.5 px-4 align-middle">
+                                <div class="font-medium text-gray-800">{{ dict_trans.trans_date|date:"Y-m-d" }}</div>
+                                <div class="text-xs text-gray-400 mt-0.5">{{ dict_trans.trans_date|date:"H:i" }}</div>
+                            </td>
+
+                            <td class="py-2.5 px-4 align-middle font-medium text-gray-800">
+                                <div class="flex items-center gap-1.5">
+                                    <span>
+                                        <a href="{% url "students:student_view" dict_trans.student_id %}" class="text-blue-700 hover:underline">
+                                        {{ dict_trans.student_cn|default:dict_trans.student_en }}
+                                        </a>
+                                    </span>
+                                    {% if dict_trans.signup_status == 'cancel' %}
+                                        <span class="bg-red-50 text-red-600 text-[10px] px-1.5 py-0.5 rounded font-medium border border-red-100">已取消</span>
+                                    {% endif %}
+                                </div>
+                                <div class="text-xs text-gray-400 font-normal mt-0.5">{{ dict_trans.student_no }}</div>
+                            </td>
+
+                            <td class="py-2.5 px-4 align-middle">
+                                {% if dict_trans.record_type == 'payment' %}
+                                    <div class="font-bold text-green-700 text-sm mb-1">${{ dict_trans.trans_amount|floatformat:2|intcomma }}</div>
+                                    <span class="text-green-600 font-medium flex items-center gap-1 text-[11px] bg-green-50 px-2 py-0.5 rounded-full w-fit border border-green-100 tracking-wide">
+                                        <i class="fa-solid fa-circle-check"></i> 收款
+                                    </span>
+                                {% elif dict_trans.record_type == 'refund' %}
+                                    <div class="font-bold text-red-600 text-sm mb-1">-${{ dict_trans.trans_amount|floatformat:2|intcomma }}</div>
+                                    <span class="text-red-600 font-medium flex items-center gap-1 text-[11px] bg-red-50 px-2 py-0.5 rounded-full w-fit border border-red-100 tracking-wide">
+                                        <i class="fa-solid fa-circle-minus"></i> 退款
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td class="py-2.5 px-4 align-middle">
+                                <div class="text-[11px] text-gray-400">
+                                    {% if dict_trans.main_category_short %}[{{ dict_trans.main_category_short }}] {{ dict_trans.sub_category_name }}{% endif %}
+                                </div>
+                                <div class="font-medium text-gray-800 truncate max-w-[220px]" title="{{ dict_trans.course_name }}">
+                                    <a href="{% url "courses:course_view" dict_trans.course_id %}" class="text-blue-700 hover:underline">
+                                        {{ dict_trans.course_name }}
+                                    </a>
+                                </div>
+                                <div class="text-[11px] text-gray-400 font-mono mt-0.5">{{ dict_trans.course_code }}</div>
+                            </td>
+
+                            <td class="py-2.5 px-4 align-middle text-xs">
+                                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded font-medium uppercase font-sans tracking-wider">{{ dict_trans.trans_method }}</span>
+                            </td>
+
+                            <td class="py-2.5 px-4 align-middle text-[11px] font-mono text-gray-500 break-all leading-relaxed">
+                                {% if dict_trans.trans_ref %}<span class="text-gray-400 font-sans">Ref:</span> <span class="text-gray-700">{{ dict_trans.trans_ref }}</span><br>{% endif %}
+                                {% if dict_trans.online_payment_session %}<span class="text-gray-400 font-sans mt-0.5 block">Session: <span class="text-gray-500">{{ dict_trans.online_payment_session }}</span></span>{% endif %}
+                            </td>
+
+                            <td class="py-2.5 px-4 text-center relative">
+                                <button type="button" onclick="toggleActionMenu(event, 'dropdown-trans-{{ forloop.counter }}', this)" class="dropdown-trigger text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition focus:outline-none">
+                                    <i class="fa-solid fa-ellipsis-vertical pointer-events-none"></i>
+                                </button>
+                                <div id="dropdown-trans-{{ forloop.counter }}" class="action-menu hidden fixed w-36 bg-white border border-gray-200 rounded-lg shadow-xl z-[999999] text-left py-1 overflow-hidden animate-fade-in">
+                                    <a href="{% url "courses:course_view" dict_trans.course_id %}" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2">
+                                        <i class="fa-solid fa-book w-4 text-center text-blue-500"></i> 課程詳情
+                                    </a>
+                                    <a href="#" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2 border-t border-gray-100">
+                                        <i class="fa-solid fa-user w-4 text-center text-green-500"></i> 學生檔案
+                                    </a>
+
+                                    {% if dict_trans.record_type == "payment" %}
+                                        <a href="{% url 'courses:download_payment_receipt' dict_trans.sign_up_id %}" target="_blank" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2 border-t border-gray-100">
+                                            <i class="fa-solid fa-file-invoice w-4 text-center text-gray-400"></i> 列印收據
+                                        </a>
+                                    {% elif dict_trans.record_type == "refund" %}
+                                        <a href="{% url 'courses:download_refund_receipt' dict_trans.refund_id %}" target="_blank" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2 border-t border-gray-100">
+                                            <i class="fa-solid fa-file-invoice w-4 text-center text-gray-400"></i> 列印退款單
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-12 text-gray-400">
+                                <i class="fa-solid fa-receipt text-4xl mb-3 text-gray-200 block"></i>
+                                所選區間或條件內沒有任何金流交易紀錄
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        <input type="hidden" name="page" id="page_input" value="{{ page_obj.number|default:1 }}">
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4 rounded-xl shadow-sm text-xs">
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm text-gray-500">
+                    顯示第 <span class="font-medium text-gray-700">{{ page_obj.start_index }}</span> 到第 <span class="font-medium text-gray-700">{{ page_obj.end_index }}</span> 筆紀錄，共 <span class="font-medium text-gray-700">{{ page_obj.paginator.count }}</span> 筆
+                </p>
+            </div>
+            <div>
+                <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm bg-white">
+                    {% if page_obj.has_previous %}
+                        <button type="button" onclick="changePage({{ page_obj.previous_page_number }})" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </button>
+                    {% else %}
+                        <span class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-200 bg-gray-50 cursor-not-allowed">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </span>
+                    {% endif %}
+
+                    {% for i in page_obj.paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <span class="relative z-10 inline-flex items-center bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white">{{ i }}</span>
+                        {% else %}
+                            <button type="button" onclick="changePage({{ i }})" class="relative inline-flex items-center px-3.5 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">{{ i }}</button>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <button type="button" onclick="changePage({{ page_obj.next_page_number }})" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </button>
+                    {% else %}
+                        <span class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-200 bg-gray-50 cursor-not-allowed">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </span>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</form>
+</main>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+let isClearing = false;
+document.addEventListener('DOMContentLoaded', function() {
+    flatpickr(".datepicker", {
+        dateFormat: "Y-m-d", 
+        allowInput: true,    
+        onChange: function(selectedDates, dateStr, instance) {
+            if (!isClearing) submitForm();
+        }
+    });
+});
+
+function submitForm() {
+    document.getElementById('transForm').submit();
+}
+
+// transaction_list.html 最底部的 <script> 內
+
+function clearFilters() {
+    isClearing = true;
+    const form = document.getElementById('transForm');
+    
+    // 🎯 清除時恢復預設排序：時間從新到舊
+    document.getElementById('sort_by_input').value = 'trans_date';
+    document.getElementById('sort_dir_input').value = 'desc';
+
+    form.querySelector('input[name="txtkeyword"]').value = '';
+    
+    ['TypeSelector', 'MethodSelector', 'MainCategorySelector', 'SubCategorySelector'].forEach(name => {
+        const el = form.querySelector(`select[name="${name}"]`);
+        if (el) el.selectedIndex = 0;
+    });
+
+    form.querySelectorAll('.datepicker').forEach(input => {
+        if (input._flatpickr) input._flatpickr.clear();
+        input.value = '';
+    });
+
+    submitForm();
+}
+
+// 🎯 新增：核心標頭排序點擊控制引擎
+function handleSort(columnName) {
+    const sortByInput = document.getElementById('sort_by_input');
+    const sortDirInput = document.getElementById('sort_dir_input');
+
+    if (sortByInput.value === columnName) {
+        // 如果原本就是點這欄，就切換正序/倒序
+        sortDirInput.value = sortDirInput.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        // 如果是點新欄位，預設先從小到大（日期類預設先從新到舊符合直覺）
+        sortByInput.value = columnName;
+        sortDirInput.value = (columnName === 'trans_date' || columnName === 'trans_amount') ? 'desc' : 'asc';
+    }
+
+    submitForm();
+}
+
+// transaction_list.html 檔案最下方
+
+// 新增全域點擊監聽：點擊畫面其他地方時關閉所有選單
+document.addEventListener('click', function(event) {
+    if (!event.target.classList.contains('dropdown-trigger')) {
+        document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
+    }
+});
+
+// 滑動網頁時自動關閉選單，避免選單浮在畫面上
+window.addEventListener('scroll', () => {
+    document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
+}, true);
+
+// 控制選單顯示與定位
+function toggleActionMenu(event, menuId, btnElement) {
+    event.stopPropagation(); 
+    
+    // 先隱藏所有選單
+    document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
+    
+    const targetMenu = document.getElementById(menuId);
+    targetMenu.classList.remove('hidden');
+    
+    // 精準計算按鈕位置，決定選單要在上方還是下方展開
+    const rect = btnElement.getBoundingClientRect();
+    const menuH = targetMenu.offsetHeight;
+    const top = rect.bottom + 5 + menuH > window.innerHeight ? rect.top - menuH - 5 : rect.bottom + 5;
+    
+    targetMenu.style.left = (rect.left - 100) + 'px';
+    targetMenu.style.top = top + 'px';
+}
+
+function changePage(pageNumber) {
+    document.getElementById('page_input').value = pageNumber;
+    submitForm(); 
+}
+
+// 修改你原本的 submitForm() 加入重設頁碼防呆機制
+function submitForm() {
+    const pageInput = document.getElementById('page_input');
+    // 如果是使用者觸發了新的條件搜尋 (而不是純粹按下一頁)，強迫回到第1頁
+    if (pageInput && window.event && (window.event.type === 'change' || window.event.type === 'click' && !window.event.target.closest('nav'))) {
+        pageInput.value = 1;
+    }
+    document.getElementById('transForm').submit();
+}
+</script>
+{% endblock %}

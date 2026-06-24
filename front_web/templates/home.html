@@ -1,0 +1,133 @@
+{% extends "base.html" %} 
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<!-- 1.2 background -->
+<div class="relative h-[450px] bg-cover bg-center" 
+  style="background-image: url('{% static "img/banner/banner.jpg" %}');">
+</div>
+
+<!-- 2. Page Content -->
+<div class="max-w-6xl mx-auto px-4 py-10">
+  {% include "partials/_alert.html" %}
+  <!-- Core Course -->
+  <section class="mb-16">
+    <div class="text-center mb-8">
+      <div class="flex items-center justify-center gap-4 mb-4">
+        <div class="h-px bg-course-brown flex-1 max-w-[100px]"></div>
+        <h2 class="text-2xl md:text-3xl font-bold text-[#592E00]">本機構設三大課程體系</h2>
+        <div class="h-px bg-course-brown flex-1 max-w-[100px]"></div>
+      </div>
+      <p class="text-sm md:text-base max-w-3xl mx-auto leading-relaxed">
+        親子Playgroup針對11-36個月幼兒，透過親子互動啟蒙發展、協助學前適應；<br>
+        幼兒及兒童課程涵蓋藝術、樂理及權威認證班，全面培育孩子才藝與學術能力；<br>
+        成人課程主打瑜伽、縱體舞蹈，輕鬆塑形紓壓，適合大眾修身健體。
+      </p>
+
+      <a href="{% url "front_web:about" %}">
+        <button type="submit" 
+                class="mt-5 bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-8 rounded-full transition-colors">
+          了解我們更多
+        </button>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 text-center">
+    {% for mc in list_mc %}
+    <a href="{% url "front_web:course_list" mc.hash_id %}">
+      <div class="flex flex-col items-center">
+        <div class="w-[200px] h-[200px] mb-4">
+          {% if mc.home_photo %}
+          <img src="{{mc.home_photo.url}}" alt="{{mc.short_name}}" class="w-full h-full object-cover">
+          {% endif %}
+        </div>
+        <p class="text-lg font-medium leading-relaxed">{{mc.name}}</p>
+      </div>
+    </a>
+    {% endfor %}
+    </div>
+  </section>
+
+  <!-- Hot Course -->
+  {% if list_promote_course %}
+  <section>
+    <div class="text-center mb-8">
+      <div class="flex items-center justify-center gap-4 mb-4">
+        <div class="h-px bg-course-brown flex-1 max-w-[100px]"></div>
+        <h2 class="text-2xl md:text-3xl font-bold text-[#592E00]">熱門課程</h2>
+        <div class="h-px bg-course-brown flex-1 max-w-[100px]"></div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {% for course in list_promote_course %}
+      <!-- 課程卡片 1 -->
+      {% comment %} fix url {% endcomment %}
+      <a href="{% url "front_web:course" course.hash_id %}">
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <!-- 課程圖片區 -->
+          <div class="w-full h-[150px] mx-auto mt-5">
+            {% if course.photo %}
+              <img src="{{course.photo.url}}" alt="{{course.title}}" class="w-full h-full object-cover">
+            {% endif %}
+          </div>
+          <!-- 課程文字區 -->
+          <div class="p-4 text-center">
+            <h3 class="text-2xl font-bold text-black mb-1">{{course.title}}</h3>
+            <p class="text-lg text-gray-700">{{course.code}}</p>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+
+<!-- NEWS -->
+<section class="relative w-full min-h-screen bg-cover bg-center bg-no-repeat" 
+  style="background-image: url('{% static "img/bg/home_news.jpg" %}');">
+  <div class="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-16">
+    <div class="text-center mb-12 max-w-2xl">
+      <h2 class="text-4xl font-bold text-black mb-4">最新消息</h2>
+      <p class="text-lg text-black leading-relaxed">
+        持續為大家更新最新動態！這裡會不定時發布課程安排、限定活動，同步公開學生參賽、演出等喜訊。記得常來瀏覽，掌握第一手資訊，一起欣賞小朋友在各類比賽中的出色表現，分享每一份收穫與喜悅。
+      </p>
+    </div>
+
+    {% if list_news %}
+    <!-- News card board -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
+
+    {% for news in list_news %}
+    <a href="{% url "front_web:news" news.hash_id %}">
+      <div class="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col">
+        <div class="w-full h-[360px]">
+          {% if news.list_photo %}
+          <img src="{{news.list_photo.url}}" alt="{{news.title}}" class="w-full h-full object-cover">
+          {% endif %}
+        </div>
+        <div class="p-4 text-center">
+          <h3 class="text-md font-bold text-black">{{news.title}}</h3>
+          {% comment %} <p class="text-sm text-black mt-1">現正接受報名！</p> {% endcomment %}
+        </div>
+      </div>
+    </a>  
+    {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Button -->
+    <div class="mt-5 mx-auto">
+      <a href="{% url "front_web:newses" %}">
+        <button type="submit" 
+                class="mt-5 bg-yellow-400 hover:bg-amber-700 text-white font-bold py-3 px-8 rounded-full transition-colors">
+          了解更多
+        </button>
+      </a>
+    </div>
+  </div>
+  
+</section>
+{% endblock %}

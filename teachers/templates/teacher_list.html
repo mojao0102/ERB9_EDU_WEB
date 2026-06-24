@@ -1,0 +1,287 @@
+{% extends 'staff_base.html' %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<main class="md:ml-[200px] flex-1 p-8 pt-16 md:pt-8 bg-gray-50 min-h-screen">
+    {% include "partials/_alert.html" %} 
+
+    <div class="flex justify-between items-end mb-6">
+        <h1 class="text-xl font-bold text-gray-800 flex items-center">
+            <i class="fa-solid fa-chalkboard-user text-blue-500 mr-4"></i> 教師管理
+        </h1>
+    </div>
+
+    <form id="teacherForm" method="GET" action="{% url 'teachers:teacher_list' %}" class="w-full">
+        <button type="submit" class="hidden" aria-hidden="true"></button>
+        <input type="hidden" name="sort_by" id="sort_by_input" value="{{ input_data.sort_by }}">
+        <input type="hidden" name="sort_dir" id="sort_dir_input" value="{{ input_data.sort_dir|default:'asc' }}">
+
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm mb-3">
+            <div class="flex flex-wrap items-center gap-3 text-sm">
+
+                <a href="{% url 'teachers:teacher_create' %}" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition flex items-center gap-2 shadow-sm font-medium">
+                    <i class="fa-solid fa-plus"></i> 新增教師
+                </a> 
+
+                <div class="relative dropdown-action">
+                    <div class="hidden flex flex-col absolute top-full mt-1 bg-white border border-gray-300 rounded shadow-lg min-w-[160px] z-50 overflow-hidden">
+                        <button formmethod="post" class="py-2.5 px-4 text-left hover:bg-gray-50 cursor-pointer text-gray-700 transition" type="submit" name="btnAction" value="SetPublish">設定 發佈</button>
+                        <button formmethod="post" class="py-2.5 px-4 text-left hover:bg-gray-50 cursor-pointer text-gray-700 transition" type="submit" name="btnAction" value="UndoPublish">取消 發佈</button>
+                        <button formmethod="post" class="py-2.5 px-4 text-left hover:bg-gray-50 cursor-pointer text-gray-700 transition border-t border-gray-100" type="submit" name="btnAction" value="SetHot">設定 推薦教師</button>
+                        <button formmethod="post" class="py-2.5 px-4 text-left hover:bg-gray-50 cursor-pointer text-gray-700 transition" type="submit" name="btnAction" value="UndoHot">取消 推薦教師</button>
+                    </div>
+                </div>  
+
+                <div class="relative flex-grow max-w-[460px]">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" name="txtkeyword" value="{{input_data.txtkeyword}}" placeholder="搜尋教師編號、姓名..." 
+                    class="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition">
+                </div>
+
+                <button onclick="submitGetForm()" class="border border-gray-300 py-2 px-4 rounded hover:bg-gray-50 transition text-gray-600 font-medium">
+                    <i class="fa-solid fa-arrows-rotate mr-1"></i> 重整
+                </button>
+
+                <button type="button" onclick="clearAllFilters()" class="border border-red-200 bg-red-50 py-2 px-4 rounded hover:bg-red-100 transition flex items-center gap-2 text-red-600 font-medium">
+                    <i class="fa-solid fa-xmark"></i> 清除條件
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex-1">
+            <div class="overflow-x-auto">
+                <table class="table-auto w-full border-collapse">
+                    <thead class="bg-white">
+                        <tr class="border-b border-gray-200">
+                            <th class="w-[22%] md:w-[20%] py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('teacher_no')">
+                                教師編號
+                                {% if input_data.sort_by == 'teacher_no' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-1-9{% else %}fa-arrow-down-9-1{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="w-[53%] md:w-[35%] py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('first_name')">
+                                教師姓名
+                                {% if input_data.sort_by == 'first_name' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-a-z{% else %}fa-arrow-down-z-a{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="hidden md:table-cell w-[25%] py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('title')">
+                                職稱
+                                {% if input_data.sort_by == 'title' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-a-z{% else %}fa-arrow-down-z-a{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="hidden md:table-cell w-[15%] py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('phone')">
+                                聯絡電話
+                                {% if input_data.sort_by == 'phone' %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="w-[25%] md:w-[5%] py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for teacher in page_obj %}
+                        <tr class="hover:bg-gray-50 transition-colors text-sm text-gray-700">
+                            <td class="py-2.5 px-4 align-top text-gray-800">
+                                <a href="{% url "teachers:teacher_view" teacher.hash_id %}" class="text-gray-800 hover:underline">
+                                {{ teacher.teacher_no }}
+                                </a>
+                            </td>
+                            <td class="py-2.5 px-4 align-top font-medium text-gray-800">
+                                <a href="{% url "teachers:teacher_view" teacher.hash_id %}" class="text-blue-700 hover:underline">
+                                {{ teacher.first_name }} {{ teacher.last_name }}
+                                </a>
+                            </td>
+                            <td class="hidden md:table-cell py-2.5 px-4 align-top">{{ teacher.title }}</td>
+                            <td class="hidden md:table-cell py-2.5 px-4 align-top text-gray-500">{{ teacher.phone }}</td>
+                            
+                            <td class="py-2.5 px-4 align-top text-right">
+                                <button type="button" class="more-btn text-gray-400 text-lg hover:text-gray-700 transition" data-id="{{ teacher.hash_id }}">
+                                    <div class="px-2 py-1">
+                                        <i class="fa-solid fa-ellipsis-v"></i>
+                                    </div>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-12 text-gray-400">
+                                <i class="fa-solid fa-folder-open text-4xl mb-3 text-gray-200 block"></i>
+                                目前沒有符合條件的教師資料
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if page_obj.has_other_pages %}
+        <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4 rounded-xl shadow-sm text-xs">
+            <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-500">
+                        顯示第 <span class="font-medium text-gray-700">{{ page_obj.start_index }}</span> 到第 <span class="font-medium text-gray-700">{{ page_obj.end_index }}</span> 筆紀錄，共 <span class="font-medium text-gray-700">{{ page_obj.paginator.count }}</span> 筆
+                    </p>
+                </div>
+                <div>
+                    <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm bg-white">
+                        {% if page_obj.has_previous %}
+                            <button type="button" onclick="changePage({{ page_obj.previous_page_number }})" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                <i class="fa-solid fa-chevron-left text-xs"></i>
+                            </button>
+                        {% else %}
+                            <span class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-200 bg-gray-50 cursor-not-allowed">
+                                <i class="fa-solid fa-chevron-left text-xs"></i>
+                            </span>
+                        {% endif %}
+
+                        {% for i in page_obj.paginator.page_range %}
+                            {% if page_obj.number == i %}
+                                <span class="relative z-10 inline-flex items-center bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white">{{ i }}</span>
+                            {% else %}
+                                <button type="button" onclick="changePage({{ i }})" class="relative inline-flex items-center px-3.5 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">{{ i }}</button>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <button type="button" onclick="changePage({{ page_obj.next_page_number }})" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                <i class="fa-solid fa-chevron-right text-xs"></i>
+                            </button>
+                        {% else %}
+                            <span class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-200 bg-gray-50 cursor-not-allowed">
+                                <i class="fa-solid fa-chevron-right text-xs"></i>
+                            </span>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </form> 
+
+    <!-- 全域更多操作彈窗，統一Course樣式 -->
+    <div id="globalMoreMenu" class="hidden fixed z-[999999] bg-white border border-gray-200 shadow-xl rounded-lg min-w-[140px] overflow-hidden">
+        <a id="menuView" href="#" class="py-2.5 px-4 hover:bg-blue-50 hover:text-blue-600 transition cursor-pointer flex items-center gap-3 text-sm text-gray-700">
+            <i class="fa-solid fa-eye text-gray-400"></i> 檢視詳情
+        </a>
+        <a id="menuEdit" href="#" class="py-2.5 px-4 hover:bg-blue-50 hover:text-blue-600 transition cursor-pointer flex items-center gap-3 text-sm text-gray-700 border-t border-gray-100">
+            <i class="fa-solid fa-pen-to-square text-blue-500"></i> 編輯教師
+        </a>
+    </div>
+</main>
+
+<script>
+// 共用提交函數（攜帶排序參數，與Course一致）
+function submitGetForm() {
+    const form = document.getElementById('teacherForm');
+    const csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (csrfInput) {
+        csrfInput.remove();
+    }
+    form.submit();
+};
+
+// 清除篩選同時重置排序
+function clearAllFilters() {
+    const form = document.getElementById('teacherForm');
+    document.getElementById('sort_by_input').value = '';
+    document.getElementById('sort_dir_input').value = 'asc';
+    const keywordInput = form.querySelector('input[name="txtkeyword"]');
+    if (keywordInput) keywordInput.value = '';
+    submitGetForm();
+};
+
+// 排序切換邏輯
+function handleSort(columnName) {
+    const sortByInput = document.getElementById('sort_by_input');
+    const sortDirInput = document.getElementById('sort_dir_input');
+    if (sortByInput.value === columnName) {
+        sortDirInput.value = sortDirInput.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortByInput.value = columnName;
+        sortDirInput.value = 'asc';
+    }
+    submitGetForm();
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const globalMoreMenu = document.getElementById('globalMoreMenu');
+    // 關閉所有下拉選單共用函數
+    function closeAllMenus() {
+        globalMoreMenu.classList.add('hidden');
+        document.querySelectorAll('.dropdown-action > div').forEach(m => m.classList.add('hidden'));
+    }
+
+    // More 按鈕彈窗邏輯（自動判斷上下邊界，同Course.html）
+    document.querySelectorAll('.more-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeAllMenus();
+            const rect = btn.getBoundingClientRect();
+            globalMoreMenu.classList.remove('hidden');
+            const menuH = globalMoreMenu.offsetHeight;
+            const top = rect.bottom + 5 + menuH > window.innerHeight 
+                        ? rect.top - menuH - 5 
+                        : rect.bottom + 5;
+            globalMoreMenu.style.left = (rect.left - 140) + 'px';
+            globalMoreMenu.style.top = top + 'px';
+            const id = btn.dataset.id;
+            document.getElementById('menuView').href = `/manage/teachers/view/${id}`;
+            document.getElementById('menuEdit').href = `/manage/teachers/edit/${id}`;
+        });
+    });
+
+    // 批次操作下拉開關
+    document.querySelectorAll('.dropdown-action').forEach(wrap => {
+        const btn = wrap.querySelector('button');
+        const menu = wrap.querySelector('div');
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const open = !menu.classList.contains('hidden');
+            closeAllMenus();
+            if (!open) menu.classList.remove('hidden');
+        });
+    });
+
+    // 點空白處關閉所有彈窗
+    document.addEventListener('click', closeAllMenus);
+    window.addEventListener('scroll', closeAllMenus, true);
+});
+
+function changePage(pageNumber) {
+    document.getElementById('page_input').value = pageNumber;
+    submitGetForm(); 
+}
+
+function clearAllFilters() {
+    const form = document.getElementById('teacherForm');
+    document.getElementById('sort_by_input').value = '';
+    document.getElementById('sort_dir_input').value = 'asc';
+    
+    const pageInput = document.getElementById('page_input');
+    if (pageInput) pageInput.value = 1;
+    
+    const keywordInput = form.querySelector('input[name="txtkeyword"]');
+    if (keywordInput) keywordInput.value = '';
+    
+    const activeFilter = form.querySelector('select[name="filter_active"]');
+    if (activeFilter) activeFilter.selectedIndex = 0;
+    
+    submitGetForm();
+};
+</script>
+{% endblock %}

@@ -1,0 +1,178 @@
+{% extends 'staff_base.html' %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<main class="md:ml-[200px] flex-1 p-8 pt-16 md:pt-8 bg-gray-100 min-h-screen">
+    <div class="mb-6">
+        <h1 class="text-xl font-bold text-gray-800">
+            {% if template %}編輯課程範本{% else %}新增課程範本{% endif %}
+        </h1>
+    </div>
+
+    {% include "partials/_alert.html" %} 
+
+    <form method="post" 
+        action="{% if template %}{% url 'courses:coursetemp_edit' template.hash_id %}{% else %}{% url 'courses:coursetemp_create' %}{% endif %}"
+        class="max-w-5xl space-y-6">
+        {% csrf_token %}
+
+        <!-- 基本資訊卡片 -->
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+            <h2 class="text-lg font-bold text-gray-700 mb-5 pb-2 border-b">
+                <i class="fa-solid fa-layer-group text-blue-500 mr-2"></i>基本資訊
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">課程類別 <span class="text-red-500">*</span></label>
+                    <select name="sub_category" required 
+                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-700 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition bg-white cursor-pointer">
+                        <option value="">-- 請選擇 --</option>
+                        {% for cat in sub_categories %}
+                        <option value="{{ cat.id }}" {% if template.sub_category_id == cat.id %}selected{% endif %}>
+                            [{{ cat.main_category.short_name }}] {{ cat.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">負責導師</label>
+                    <select name="teacher" 
+                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-700 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition bg-white cursor-pointer">
+                        <option value="">-- 尚未指派 --</option>
+                        {% for t in teachers %}
+                        <option value="{{ t.id }}" {% if template.teacher_id == t.id %}selected{% endif %}>
+                            {{ t.first_name }} {{ t.last_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-2">範本名稱 <span class="text-red-500">*</span></label>
+                <input type="text" name="name" value="{{ template.name|default:'' }}" required
+                    class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-700 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition">
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-2">課程介紹</label>
+                <textarea name="content" rows="5" 
+                    class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-700 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition">{{ template.content|default:'' }}</textarea>
+            </div>
+        </div>
+
+        <!-- 時程與費用卡片 -->
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+            <h2 class="text-lg font-bold text-gray-700 mb-5 pb-2 border-b">
+                <i class="fa-regular fa-calendar-check text-green-500 mr-2"></i>時程與費用
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">總堂數</label>
+                    <input type="number" step="1" name="total_lessons" id="totalLessons" value="{{ template.total_lessons|floatformat:'0'|default:'' }}"
+                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-700 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">每堂時數</label>
+                    <input type="number" step="0.5" name="hours_per_lesson" id="hoursPerLesson" value="{{ template.hours_per_lesson|default:'' }}"
+                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-700 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">課程費用</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
+                        <input type="number" step="0.01" name="course_fee" value="{{ template.course_fee|default:'' }}"
+                            class="w-full rounded-lg border border-gray-300 pl-8 pr-4 py-2.5 text-gray-700 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">總時長</label>
+                    <input type="number" step="0.5" name="total_hours" id="totalHours" value="{{ template.total_hours|default:'' }}" readonly
+                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-500 bg-gray-50 focus:outline-none">
+                </div>
+            </div>
+        </div>
+
+        <!-- 課程特徵卡片 -->
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+            <h2 class="text-lg font-bold text-gray-700 mb-4 pb-2 border-b">
+                <i class="fa-solid fa-list-check text-orange-500 mr-2"></i>課程特徵
+            </h2>
+            <div id="featureContainer" class="space-y-3">
+                {% for f in features %}
+                <input type="text" name="feature_{{ forloop.counter }}" value="{{ f }}"
+                    class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition feature-row{% if forloop.counter > 4 %} hidden{% endif %}"
+                    placeholder="特徵 {{ forloop.counter }}">
+                {% endfor %}
+            </div>
+            <button type="button" onclick="addFeatureRow()" id="addFeatureBtn"
+                class="mt-3 border border-gray-300 bg-white rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition shadow-sm w-full font-medium">
+                <i class="fa-solid fa-plus text-blue-500 mr-1"></i> 增加特徵欄位
+            </button>
+        </div>
+
+        <!-- 底部操作按鈕區 -->
+        <div class="flex flex-wrap items-center gap-3 pt-6 border-t border-gray-200">
+            <button type="submit" class="bg-blue-500 text-white px-8 py-2.5 rounded-lg hover:bg-blue-600 font-medium transition shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-floppy-disk"></i>
+                {% if template %}儲存編輯{% else %}建立範本{% endif %}
+            </button>
+
+            <a href="{% url 'courses:coursetemp_list' %}"
+                class="bg-white border border-gray-300 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-50 font-medium transition shadow-sm flex items-center gap-2">
+                返回列表
+            </a>
+
+            {% comment %} {% if template %}
+            <button type="submit" name="action" value="delete"
+                onclick="return confirm('確定要刪除此課程範本？此操作不可還原。')"
+                class="bg-gray-500 text-white px-6 py-2.5 rounded-lg hover:bg-gray-600 font-medium transition shadow-sm ml-auto flex items-center gap-2">
+                <i class="fa-regular fa-trash-can"></i> 刪除範本
+            </button>
+            {% endif %} {% endcomment %}
+
+            {% if template %}
+            <button type="submit" formaction="{% url 'courses:coursetemp_delete' template.hash_id %}" formnovalidate onclick="return confirm('確定刪除此課程範本？操作無法復原。');" class="bg-gray-500 text-white px-6 py-2.5 rounded-lg hover:bg-gray-600 font-medium transition shadow-sm ml-auto flex items-center gap-2">
+                <i class="fa-regular fa-trash-can"></i> 刪除範本
+            </button>
+            {% endif %}
+        </div>
+
+        <p class="text-sm text-red-500">* 標記為必填項目</p>
+    </form>
+</main>
+
+<script>
+const MAX_FEATURE = 8;
+function addFeatureRow() {
+    const rows = document.querySelectorAll('.feature-row');
+    for (const row of rows) {
+        if (row.classList.contains('hidden')) {
+            row.classList.remove('hidden');
+            return;
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const totalLessons = document.getElementById('totalLessons');
+    const hoursPerLesson = document.getElementById('hoursPerLesson');
+    const totalHours = document.getElementById('totalHours');
+
+    function calcTotalHours() {
+        const l = parseFloat(totalLessons.value) || 0;
+        const h = parseFloat(hoursPerLesson.value) || 0;
+        totalHours.value = (l * h) || '';
+    }
+
+    totalLessons.addEventListener('input', calcTotalHours);
+    hoursPerLesson.addEventListener('input', calcTotalHours);
+});
+</script>
+{% endblock %}

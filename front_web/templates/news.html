@@ -1,0 +1,48 @@
+{% extends "base.html" %} 
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<!-- 1.2 background -->
+<div class="relative h-[200px] bg-cover bg-center" 
+    style="background-image: url('{% static "img/banner/news_banner.png" %}');">
+</div>
+
+<!-- 2. Page Content -->
+<div class="max-w-4xl mx-auto p-6">
+    <!-- Title -->
+    <div class="flex items-center justify-center gap-4 mt-5 mb-10">
+        <h2 class="text-2xl md:text-3xl font-bold text-[#592E00]">最新消息</h2>
+    </div>
+
+    {% if list_news %}
+    <!-- 2x2 網格卡片佈局 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+    {% for news in list_news %}     
+    <!-- 卡片 1：2026 暑期活動 (looping) -->
+    <a href="{% url "front_web:news" news.hash_id %}">
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <!-- 圖片區 -->
+        <div class="w-full aspect-video bg-gray-100">
+            {% if news.list_photo %}
+            <img src="{{news.list_photo.url}}" 
+                alt="{{news.title}}" 
+                class="w-full h-full object-cover">
+            {% endif %}
+        </div>
+        <!-- 文字區 -->
+        <div class="p-4 text-center">
+            <h3 class="text-xl font-bold text-gray-800">{{news.title}}</h3>
+            <p class="text-sm text-gray-600 mt-1">發佈於：{{news.publish_date|date:"Y-m-d, l"}}</p>
+        </div>
+        </div>
+    </a>
+    {% endfor %}
+    {% else %}
+    <div class="flex items-center justify-center gap-4 mt-5 mb-10">
+        <h2 class="text-2xl md:text-3xl">暫時沒有最新消息，敬請期待。</h2>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

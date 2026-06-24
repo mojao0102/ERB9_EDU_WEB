@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="relative h-[120px] bg-cover bg-center" 
+    style="background-image: url('{% static "img/banner/news_banner.png" %}');">
+</div>
+
+<section class="py-16 px-4 bg-gray-50 min-h-[calc(100vh-120px)] flex items-center">
+    <div class="max-w-md mx-auto w-full bg-white shadow-xl rounded-2xl p-8 md:p-10 border border-gray-100">
+    
+    <div class="text-center mb-6">
+        <div class="w-20 h-20 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-4">
+            <i class="fa-solid fa-envelope-open-text text-[3.5rem] text-amber-500"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900 mb-1">修改驗證電子信箱</h2>
+        <p class="text-gray-500 text-sm leading-relaxed">
+            發現信箱填錯或無法正常收到信？請在下方輸入您正確有效的全新的電子郵件。
+        </p>
+    </div>
+
+    {% include "partials/_alert.html" %} <form method="POST" action="{% url 'front_web:student_change_email_and_resend' %}" class="space-y-5" novalidate>
+        {% csrf_token %}
+
+        <div>
+            <label class="block text-gray-600 text-sm font-medium mb-2">目前紀錄的電子信箱</label>
+            <div class="relative rounded-md shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                    <i class="fa-solid fa-lock text-sm"></i>
+                </div>
+                <input type="text" 
+                        class="block w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-400 text-base focus:outline-none cursor-not-allowed" 
+                        value="{{ old_email }}" 
+                        readonly>
+            </div>
+        </div>
+
+        <div>
+            <label for="new_email" class="block text-gray-700 text-sm font-medium mb-2">請輸入全新電子郵件地址</label>
+            <div class="relative rounded-md shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                    <i class="fa-solid fa-envelope-open"></i>
+                </div>
+                <input type="email" 
+                        id="new_email" 
+                        name="new_email" 
+                        class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl text-gray-900 text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#70c1d6] focus:border-[#70c1d6] transition-all" 
+                        placeholder="example@email.com" 
+                        required 
+                        autocomplete="off">
+            </div>
+            <p class="mt-1.5 text-xs text-gray-400 leading-relaxed">
+                * 點擊儲存後，系統將會使舊連結作廢，並重新向此新信箱派發開通憑證。
+            </p>
+        </div>
+
+        <div class="flex flex-col gap-3 pt-2">
+            <button type="submit" 
+                    class="w-full py-3.5 rounded-full bg-[#6986f5] hover:bg-[#5673e3] text-white text-lg font-medium text-center shadow-md transition-all duration-200">
+                <i class="fa-solid fa-paper-plane mr-1"></i> 儲存並重新發送驗證信
+            </button>
+            
+            <a href="{% url 'front_web:student_register_pending' %}" 
+                class="w-full py-3.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-lg font-medium text-center transition-all duration-200">
+                取消並返回
+            </a>
+        </div>
+    </form>
+
+    </div>
+</section>
+{% endblock %}

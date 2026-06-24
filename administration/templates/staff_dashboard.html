@@ -1,0 +1,224 @@
+{% extends "staff_base.html" %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+<main class="md:ml-[200px] flex-1 p-8 pt-16 md:pt-8">
+
+    <div class="flex justify-between items-end mb-6">
+        <h1 class="text-xl font-bold text-gray-800 flex items-center">
+            <i class="fa-solid fa-gauge-high text-blue-500 mr-4"></i> 收益分析
+        </h1>
+    </div> 
+
+    <!-- Year + Month filter (auto submit after selection) -->
+    <div class="flex gap-3 mb-3">
+        <form id="filterForm" method="GET" class="flex gap-2 items-center">
+            <select 
+                name="year" 
+                class="border border-gray-300 rounded px-3 py-2 bg-white min-w-[100px] cursor-pointer text-sm"
+                id="yearSelect">
+                {% for y in years %}
+                    <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+
+            <select 
+                name="month" 
+                class="border border-gray-300 rounded px-3 py-2 bg-white min-w-[150px] cursor-pointer text-sm"
+                id="monthSelect">
+                {% for m_num, m_name in months %}
+                    <option value="{{ m_num }}" {% if m_num == month %}selected{% endif %}>{{ m_name }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function(){
+        const yearSel = document.getElementById('yearSelect');
+        const monthSel = document.getElementById('monthSelect');
+        const form = document.getElementById('filterForm');
+
+        if(yearSel){
+            yearSel.addEventListener('change', function(){
+                form.submit();
+            });
+        }
+        if(monthSel){
+            monthSel.addEventListener('change', function(){
+                form.submit();
+            });
+        }
+    });
+    </script>
+
+    <!-- Statistics card area -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-5">
+        
+        <div class="bg-white rounded-xl shadow-md p-3 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center gap-2 text-gray-500 mb-2">
+                    <i class="fa-solid fa-credit-card text-lg"></i>
+                    <h3 class="text-sm font-medium">本月營業淨額 ({{ year }}-{{ month }})</h3>
+                </div>
+                <p class="text-xl font-bold text-gray-800">${{ monthly_revenue|default:0|floatformat:2|intcomma }}</p>
+            </div>
+            <div class="mt-2 pt-2 border-t border-gray-100 text-[11px] text-gray-500 space-y-1">
+                <div class="flex justify-between items-center">
+                    <span><i class="fa-solid fa-arrow-trend-up text-green-500 mr-1.5"></i>收款 ({{ monthly_payment_count }}筆)</span>
+                    <span class="text-green-600 font-medium">${{ monthly_payment_amount|default:0|floatformat:2|intcomma }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span><i class="fa-solid fa-arrow-trend-down text-red-500 mr-1.5"></i>退款 ({{ monthly_refund_count }}筆)</span>
+                    <span class="text-red-500 font-medium">-${{ monthly_refund_amount|default:0|floatformat:2|intcomma }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-3 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center gap-2 text-gray-500 mb-2">
+                    <i class="fa-solid fa-sack-dollar text-lg"></i>
+                    <h3 class="text-sm font-medium">本年度營業淨額 ({{ year }})</h3>
+                </div>
+                <p class="text-xl font-bold text-gray-800">${{ yearly_revenue|default:0|floatformat:2|intcomma }}</p>
+            </div>
+            <div class="mt-2 pt-2 border-t border-gray-100 text-[11px] text-gray-500 space-y-1">
+                <div class="flex justify-between items-center">
+                    <span><i class="fa-solid fa-arrow-trend-up text-green-500 mr-1.5"></i>收款 ({{ yearly_payment_count }}筆)</span>
+                    <span class="text-green-600 font-medium">${{ yearly_payment_amount|default:0|floatformat:2|intcomma }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span><i class="fa-solid fa-arrow-trend-down text-red-500 mr-1.5"></i>退款 ({{ yearly_refund_count }}筆)</span>
+                    <span class="text-red-500 font-medium">-${{ yearly_refund_amount|default:0|floatformat:2|intcomma }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-3 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center gap-2 text-gray-500 mb-2">
+                    <i class="fa-solid fa-users text-lg"></i>
+                    <h3 class="text-sm font-medium">本月獨立學生數</h3>
+                </div>
+                <p class="text-xl font-bold text-gray-800">{{ monthly_student_distinct|default:0 }} <span class="text-sm text-gray-400 font-normal">人</span></p>
+            </div>
+            <div class="mt-2 pt-2 border-t border-gray-100 text-[11px] text-gray-400">
+                <i class="fa-solid fa-circle-info mr-1"></i> 指本月有多少位「不同」的學生付費報名。
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-3 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center gap-2 text-gray-500 mb-2">
+                    <i class="fa-solid fa-clipboard-list text-lg"></i>
+                    <h3 class="text-sm font-medium">本月總報名人次</h3>
+                </div>
+                <p class="text-xl font-bold text-gray-800">{{ monthly_signup_total|default:0 }} <span class="text-sm text-gray-400 font-normal">堂</span></p>
+            </div>
+            <div class="mt-2 pt-2 border-t border-gray-100 text-[11px] text-gray-400">
+                <i class="fa-solid fa-circle-info mr-1"></i> 指本月總計賣出了多少堂課。
+            </div>
+        </div>
+    </div>
+
+    <!-- Bar chart: Monthly revenue of current year -->
+    <div class="mb-5">
+        <h2 class="text-base text-gray-700 font-bold mb-3">年度每月營業額走勢 ({{ year }})</h2>
+        <div class="bg-[#f8f8ff] rounded border p-4 w-full">
+            <canvas id="revenueBarChart" height="280"></canvas>
+        </div>
+    </div>
+
+    <div class="mb-5">
+        <h2 class="text-base text-gray-700 font-bold mb-3">本月熱門課程類別排行</h2>
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="table-auto w-full border-collapse">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="w-[10%] py-3 px-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">排名</th>
+                            <th class="w-[50%] py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">課程類別</th>
+                            <th class="w-[20%] py-3 px-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">報名總數 (Signups)</th>
+                            <th class="w-[20%] py-3 px-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">淨收益 (Net Income)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for cat in top_categories %}
+                        <tr class="hover:bg-gray-50 transition-colors text-sm text-gray-700">
+                            <td class="py-3 px-4 text-center text-base font-bold {% if forloop.counter == 1 %}text-yellow-500{% elif forloop.counter == 2 %}text-gray-400{% elif forloop.counter == 3 %}text-amber-600{% else %}text-gray-300 font-medium{% endif %}">
+                                #{{ forloop.counter }}
+                            </td>
+                            <td class="py-3 px-4 font-medium text-gray-800">{{ cat.name }}</td>
+                            <td class="py-3 px-4 text-right font-medium text-gray-600">{{ cat.signups }}</td>
+                            <td class="py-3 px-4 text-right font-bold text-green-600">${{ cat.net_income|floatformat:2|intcomma }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr class="text-sm">
+                            <td colspan="4" class="py-8 text-center text-gray-400">
+                                <i class="fa-solid fa-chart-pie text-3xl mb-2 text-gray-300 block"></i>
+                                本年度尚無類別交易紀錄
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Import Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+
+<!-- Render bar chart -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('revenueBarChart').getContext('2d');
+    // Month labels & amount data passed from backend
+    const labels = {{ chart_labels|safe }};
+    const data = {{ chart_data|safe }};
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '每月營業額 ($)',
+                data: data,
+                backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return '營業額: $' + context.raw.toLocaleString();
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

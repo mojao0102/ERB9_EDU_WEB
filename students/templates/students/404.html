@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>頁面</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Google Fonts - Yusei Magic -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yusei+Magic&display=swap" rel="stylesheet">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style type="text/tailwindcss">
+@layer utilities {
+    .font-yusei {
+    font-family: 'Yusei Magic', sans-serif;
+    }
+    .text-course-brown {
+    color: #592E00;
+    }
+}
+</style>
+</head>
+<body class="m-0 p-0 font-yusei bg-white font-yusei text-course-brown">
+
+<!-- 1. Navbar -->
+<!-- Desktop navbar -->
+<div id="navbar" class="fixed w-full top-0 md:top-5 md:w-[90%] md:left-1/2 md:-translate-x-1/2 md:rounded-full bg-white shadow-lg z-50">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+    <!-- Desktop Links -->
+    <div class="hidden md:flex gap-6">
+        <a href="#" class="text-gray-700 hover:text-blue-600"><i class="fa-solid fa-baby fa-xl" style="color: #FCD82A;"></i>Playgroup</a>
+        <a href="#" class="text-gray-700 hover:text-blue-600"><i class="fa-solid fa-child-reaching fa-xl" style="color: #accf56;"></i>兒童課程</a>
+        <a href="#" class="text-gray-700 hover:text-blue-600"><i class="fa-solid fa-person fa-xl" style="color: #c7a4a0;"></i>成人課程</a>
+    </div>
+
+    <!-- Logo -->
+    <div>
+        <a href="#" class="text-xl font-bold text-gray-800">
+        <img src="./img/logo/logo.png" class="h-12" alt="jclogo">
+        </a>
+    </div>
+
+    <!-- Login / Register -->
+    <div class="hidden md:flex gap-6">
+        <div class="flex items-center gap-5">
+        <a href="#">
+            <div class="flex items-center">
+            <div class="w-8 h-8 bg-green-300 rounded-full flex items-center justify-center">
+                <i class="fa-solid fa-arrow-right-to-bracket text-lg text-black"></i>
+            </div>
+            <span class="text-md text-gray-600 font-medium">登入</span>
+            </div>
+        </a>
+        <a href="#">
+            <div class="flex items-center">
+            <div class="w-8 h-8 bg-orange-200 rounded-full flex items-center justify-center">
+                <i class="fa-solid fa-user-plus text-md text-black"></i>
+            </div>
+            <span class="text-md text-gray-600 font-medium">註冊</span>
+            </div>
+        </a>
+        </div>
+    </div>
+
+    <!-- Hambugar menu -->
+    <button id="menuBtn" class="md:hidden text-2xl text-gray-600 z-50">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+</div>
+</div>
+
+<!-- Mobile menu -->
+<div id="mobileMenu" 
+  class="fixed inset-0 bg-white/95 z-[9998] flex flex-col items-center justify-center gap-3 text-lg hidden opacity-0 transition-opacity duration-300"
+  style="background-image: url('./img/banner/banner.jpg');">
+
+  <a href="#" class="w-full px-10">
+    <p class="w-[200px] mx-auto py-2 px-5 bg-blue-400 text-white font-medium rounded-full hover:bg-sky-200 transition-colors text-center">首頁</p>
+  </a>
+  <a href="#" class="w-full px-10">
+    <p class="w-[200px] mx-auto py-2 px-5 bg-[#FF7400] text-white font-medium rounded-full hover:bg-sky-200 transition-colors text-center">關於我們</p>
+  </a>
+  <a href="#" class="w-full px-10">
+    <p class="w-[200px] mx-auto py-2 px-5 bg-[#FCD82A] text-white font-medium rounded-full hover:bg-sky-200 transition-colors text-center">最新消息</p>
+  </a>
+
+  <div class="flex flex-col items-center gap-4 mt-4">
+    <a href="#">
+        <button class="w-40 py-2 bg-white hover:bg-gray-100 border-4 border-yellow-400 rounded-2xl flex flex-col items-center justify-center shadow-md">
+        <i class="fa-solid fa-baby text-4xl text-yellow-400 mb-2"></i>
+        <span class="text-gray-700 text-lg font-medium">幼嬰課程</span>
+        </button>
+    </a>
+    <a href="#">
+        <button class="w-40 py-2 bg-white hover:bg-gray-100 border-4 border-[#accf56] rounded-2xl flex flex-col items-center justify-center shadow-md">
+        <i class="fa-solid fa-child-reaching text-4xl text-[#accf56] mb-2"></i>
+        <span class="text-gray-700 text-lg font-medium">兒童課程</span>
+        </button>
+    </a>
+    <a href="#">
+        <button class="w-40 py-2 bg-white hover:bg-gray-100 border-4 border-[#C7A4A0] rounded-2xl flex flex-col items-center justify-center shadow-md">
+        <i class="fa-solid fa-person text-4xl text-[#C7A4A0] mb-2"></i>
+        <span class="text-gray-700 text-lg font-medium">成人課程</span>
+        </button>
+    </a>
+  </div>
+
+  <!-- *** Here need to set condition between public account vs private account *** -->
+  <!-- Public User Footer -->
+  <div class="flex justify-center gap-4 mt-6 w-full px-4">
+    <a href="">
+      <button class="py-4 px-8 bg-green-400 text-white rounded-full flex items-center gap-3 hover:bg-green-500 transition-colors">
+        <i class="fa-solid fa-arrow-right-to-bracket text-xl"></i>
+        <span class="font-medium text-xl">登入</span>
+      </button>
+    </a>
+    <a href="">
+      <button class="py-4 px-8 bg-blue-500 text-white rounded-full flex items-center gap-3 hover:bg-blue-600 transition-colors">
+        <i class="fa-solid fa-user-plus text-xl"></i>
+        <span class="font-medium text-xl">註冊</span>
+      </button>
+    </a>
+  </div>
+  <!-- Private User Footer -->
+  <div class="flex justify-center gap-4 mt-6 w-full px-4">
+    <a href="">
+      <button class="py-4 px-8 bg-[#FF7400] text-white rounded-full flex items-center gap-3 hover:bg-orange-400 transition-colors">
+        <i class="fa-solid fa-calendar text-xl"></i>
+        <span class="font-medium text-xl">我的課程</span>
+      </button>
+    </a>
+    <a href="">
+      <button class="py-4 px-8 bg-[#001A77] text-white rounded-full flex items-center gap-3 hover:bg-blue-300 transition-colors">
+        <i class="fa-solid fa-person-walking-arrow-right text-xl"></i>
+        <span class="font-medium text-xl">登出</span>
+      </button>
+    </a>
+  </div>
+</div>
+
+<!-- Mobile close button -->
+<button id="closeBtn" 
+  class="bg-blue-500 px-2 rounded-lg fixed top-5 right-5 text-2xl text-white z-[9999] hidden">
+  <i class="fa-solid fa-xmark"></i>
+</button>
+
+<!-- 1.2 navbar background -->
+<div class="relative h-[180px] bg-cover bg-center" 
+  style="background-image: url('./img/bg/page.jpg');">
+</div>
+
+<!-- 2. Content -->
+<section class="mt-8 bg-white flex flex-col items-center justify-center gap-10 px-6">
+    <!-- 藍色哭臉 -->
+    <div class="w-24 h-24 rounded-full flex items-center justify-center">
+      <i class="fa-solid fa-triangle-exclamation text-[6rem]" style="color: rgb(53, 53, 53);"></i>
+    </div>
+
+    <h2 class="text-2xl text-gray-600 font-medium">抱歉, 沒有這個頁面喔...</h2>
+
+    <!-- 返回按鈕 -->
+    <a href="#" class="py-4 px-14 rounded-full bg-[#555555] text-white text-xl text-center font-medium">返回主頁</a>
+</section>
+
+<script>
+const mainnavbar = document.getElementById('navbar');
+const menuBtn = document.getElementById('menuBtn');
+const closeBtn = document.getElementById('closeBtn');
+const mobileMenu = document.getElementById('mobileMenu');
+
+// Open Mobile version
+menuBtn.addEventListener('click', () => {
+  menuBtn.classList.add('hidden');
+  mobileMenu.classList.remove('hidden');
+  closeBtn.classList.remove('hidden');
+  setTimeout(() => {
+    mobileMenu.classList.add('opacity-100');
+  }, 10);
+  document.body.style.overflow = 'hidden';
+});
+
+// Close Mobile version
+function closeMobileMenu() {
+  mobileMenu.classList.remove('opacity-100');
+  setTimeout(() => {
+    mobileMenu.classList.add('hidden');
+    closeBtn.classList.add('hidden');
+    menuBtn.classList.remove('hidden');
+  });
+  document.body.style.overflow = '';
+}
+
+closeBtn.addEventListener('click', closeMobileMenu);
+
+// Close when click the button
+const links = mobileMenu.querySelectorAll('a');
+links.forEach(link => {
+  link.addEventListener('click', closeMobileMenu);
+});
+
+// 🔥 重點：視窗改變大小 → 自動關閉手機選單
+window.addEventListener('resize', () => {
+  if (window.innerWidth >= 768) {
+    closeMobileMenu();
+  }
+});
+</script>
+
+</body>
+</html>

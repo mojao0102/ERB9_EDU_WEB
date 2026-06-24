@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>付款收據 - {{ record.payment_ref }}</title>
+    <style>
+        /* PDF 頁面設定 */
+        @page {
+            size: A4;
+            margin: 2cm;
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 10px;
+                color: #666;
+            }
+        }
+
+        /* 基礎字體與排版 */
+        body {
+            font-family: "Helvetica Neue", Helvetica, "PingFang TC", "LiHei Pro", Arial, sans-serif;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 🎯 標題、Logo 與 Center 資訊區塊 */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 20px;
+        }
+        .header-logo {
+            max-height: 60px; /* 控制 Logo 高度 */
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 26px;
+            letter-spacing: 2px;
+        }
+        .center-details {
+            font-size: 12px;
+            color: #555;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        .header h2 {
+            margin: 0;
+            color: #7f8c8d;
+            font-size: 18px;
+            font-weight: normal;
+        }
+
+        /* 資訊區塊 (左：學生，右：收據) */
+        .info-section {
+            width: 100%;
+            margin-bottom: 30px;
+            display: table; /* WeasyPrint 支援 table 排版效果最好 */
+        }
+        .info-col {
+            display: table-cell;
+            width: 50%;
+        }
+        .info-col.right {
+            text-align: right;
+        }
+        .info-row {
+            margin-bottom: 5px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #555;
+            display: inline-block;
+            width: 80px;
+            text-align: left;
+        }
+
+        /* 收費明細表格 */
+        table.items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        table.items-table th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-weight: bold;
+            text-align: left;
+            padding: 12px;
+            border-top: 2px solid #2c3e50;
+            border-bottom: 1px solid #ddd;
+        }
+        table.items-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            color: #444;
+        }
+        table.items-table th.text-right,
+        table.items-table td.text-right {
+            text-align: right;
+        }
+
+        /* 總計區塊 */
+        .total-section {
+            width: 100%;
+            display: table;
+            margin-top: 20px;
+        }
+        .total-box {
+            display: table-cell;
+            text-align: right;
+        }
+        .total-line {
+            font-size: 16px;
+            padding: 5px 0;
+        }
+        .total-line.grand-total {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            border-top: 2px solid #2c3e50;
+            padding-top: 10px;
+            margin-top: 5px;
+        }
+
+        /* 底部資訊 */
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .status-badge {
+            color: #27ae60;
+            font-weight: bold;
+            border: 2px solid #27ae60;
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+{% load static %}
+    <div class="header">
+        {% if logo_url %}
+        <img src="{{ logo_url }}" class="header-logo" alt="Logo">
+        {% endif %}
+
+        <h2>{{ center.name }}</h2>
+        
+        <div class="center-details">
+            {% if center.addr %}地址：{{ center.addr }}<br>{% endif %}
+            {% if center.phone %}電話：{{ center.phone }}{% endif %}
+            {% if center.email %} | 電郵：{{ center.email }}{% endif %}
+        </div>
+
+        <h2>付款收據 (OFFICIAL RECEIPT)</h2>
+    </div>
+
+    <div class="info-section">
+        <div class="info-col">
+            <div class="info-row"><span class="info-label">學生姓名:</span> {{ student.cn_name }} {% if student.en_name %}({{ student.en_name }}){% endif %}</div>
+            <div class="info-row"><span class="info-label">學生編號:</span> {{ student.student_no }}</div>
+            <div class="info-row"><span class="info-label">電子信箱:</span> {{ student.email }}</div>
+        </div>
+        <div class="info-col right">
+            <div class="info-row"><strong>收據號碼:</strong> {{ signup.payment_ref }}</div>
+            <div class="info-row"><strong>付款日期:</strong> {{ signup.payment_date|date:"Y-m-d H:i" }}</div>
+            <div class="info-row"><strong>付款方式:</strong> {{ signup.payment_method}}</div>
+            <div class="status-badge">已付清 PAID</div>
+        </div>
+    </div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>課程編號</th>
+                <th>課程名稱</th>
+                <th class="text-right">金額 (HKD)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ signup.course.code }}</td>
+                <td>{{ signup.course.name }}</td>
+                <td class="text-right">${{ signup.payment_amount }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <div class="info-col">
+            <p style="color: #666; font-size: 12px; margin-top: 20px;">
+                * 此收據由系統自動產生，無須實體簽名。<br>
+                * 請妥善保存此收據作為上課憑證。
+            </p>
+        </div>
+        <div class="total-box">
+            <div class="total-line">
+                <span style="display:inline-block; width: 100px;">小計:</span>
+                <span style="display:inline-block; width: 100px;">${{ signup.payment_amount }}</span>
+            </div>
+            <div class="total-line grand-total">
+                <span style="display:inline-block; width: 100px;">總計:</span>
+                <span style="display:inline-block; width: 100px;">${{ signup.payment_amount }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>感謝您的報名！如有任何問題，請聯絡中心行政團隊。</p>
+        <p>{{ center.name|default:"系統預設中心" }} | 版權所有 © {% now "Y" %}</p>
+    </div>
+
+</body>
+</html>

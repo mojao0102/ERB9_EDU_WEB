@@ -1,0 +1,122 @@
+{% extends "base.html" %} 
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<div class="relative min-h-screen bg-cover bg-center flex items-center justify-center pt-[150px] pb-10" 
+    style="background-image: url('{% static "img/bg/register.png" %}');">
+
+    <div class="bg-white shadow-lg rounded-lg p-10 w-full max-w-2xl mx-auto">
+    {% include "partials/_alert.html" %}
+      <form id="registerForm" action="{% url "front_web:student_register" %}" method="POST">
+        {% csrf_token %}
+        <div class="mb-8">
+          <h2 class="text-3xl font-bold text-gray-700 mb-6">Step 1：註冊帳號</h2>
+          <div class="mb-6">
+            <label for="username" class="block text-gray-700 font-medium mb-2">帳號</label>
+            <input type="text" id="username" name="username" placeholder="" required
+                  value="{{ input_data.username|default:'' }}"
+                  class="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400">
+          </div>
+          <div class="mb-6">
+            <label for="password" class="block text-gray-700 font-medium mb-2">密碼</label>
+            <input type="password" id="password" name="password" placeholder="" required
+                  class="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400">
+          </div>
+          <div class="mb-6">
+            <label for="confirm_password" class="block text-gray-700 font-medium mb-2">確認密碼</label>
+            <input type="password" id="confirm_password" name="confirm_password" placeholder="" required
+                  class="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400">
+          </div>
+        </div>
+
+        <div class="mb-8">
+          <h2 class="text-3xl font-bold text-gray-700 mb-6">Step 2：請填寫資料 (*必填)</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label for="studentNameCh" class="block text-gray-700 font-medium mb-2">學生名稱(中文)*</label>
+              <input type="text" id="studentNameCh" name="studentNameCh" placeholder="" required
+                    value="{{ input_data.studentNameCh|default:'' }}"
+                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400">
+            </div>
+            <div>
+              <label for="studentNameEn" class="block text-gray-700 font-medium mb-2">學生名稱(英文)*</label>
+              <input type="text" id="studentNameEn" name="studentNameEn" placeholder="" required
+                    value="{{ input_data.studentNameEn|default:'' }}"
+                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label for="studentDob" class="block text-gray-700 font-medium mb-2">學生出生日期*</label>
+              <input type="date" id="studentDob" name="studentDob" required
+                    value="{{ input_data.studentDob|default:'' }}"
+                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400">
+            </div>
+            <div>
+              <label for="contactEmail" class="block text-gray-700 font-medium mb-2">Email*</label>
+              <input type="email" id="contactEmail" name="contactEmail" placeholder="" required
+                    value="{{ input_data.contactEmail|default:'' }}"
+                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400">
+            </div>
+          </div>
+          <div class="mb-6">
+            <label for="school" class="block text-gray-700 font-medium mb-2">就讀學校</label>
+            <input type="text" id="school" name="school" placeholder=""
+                  value="{{ input_data.school|default:'' }}"
+                  class="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400">
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div>
+              <label for="contact1Name" class="block text-gray-700 font-medium mb-2">聯絡人1名字</label>
+              <input type="text" id="contact1Name" name="contact1Name" placeholder="" 
+                    value="{{ input_data.contact1Name|default:'' }}"
+                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400">
+            </div>
+            <div>
+              <label for="contact1Phone" class="block text-gray-700 font-medium mb-2">聯絡人1電話*</label>
+              <input type="tel" id="contact1Phone" name="contact1Phone" placeholder="" required
+                    value="{{ input_data.contact1Phone|default:'' }}"
+                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400">
+            </div>
+            <div>
+              <label for="contact1Relation" class="block text-gray-700 font-medium mb-2">聯絡人1關係</label>
+              <input type="text" id="contact1Relation" name="contact1Relation" placeholder="母親/父親/其他" 
+                    value="{{ input_data.contact1Relation|default:'' }}"
+                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label for="contact2Name" class="block text-gray-700 font-medium mb-2">聯絡人2名字</label>
+              <input type="text" id="contact2Name" name="contact2Name" placeholder="" 
+                    value="{{ input_data.contact2Name|default:'' }}"
+                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400">
+            </div>
+            <div>
+              <label for="contact2Phone" class="block text-gray-700 font-medium mb-2">聯絡人2電話</label>
+              <input type="tel" id="contact2Phone" name="contact2Phone" placeholder="" 
+                    value="{{ input_data.contact2Phone|default:'' }}"
+                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400">
+            </div>
+            <div>
+              <label for="contact2Relation" class="block text-gray-700 font-medium mb-2">聯絡人2關係</label>
+              <input type="text" id="contact2Relation" name="contact2Relation" placeholder="母親/父親/其他" 
+                    value="{{ input_data.contact2Relation|default:'' }}"
+                    class="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400">
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" value="register" name="btnRegister"
+                class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-8 rounded-full transition-colors">
+          註冊
+        </button>
+      </form>
+
+      <p class="mt-6 text-blue-500">
+        已有帳號？ <a href="{% url "front_web:student_login" %}" class="hover:underline">立即去登入！</a>
+      </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,226 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>課程管理後台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style type="text/tailwindcss">
+@layer utilities {
+    .sidebar-shadow { box-shadow: 2px 0 8px #0000000d; }
+    .dropdown-card { box-shadow: 0 2px 10px rgba(0,0,0,0.12); z-index:9999; }
+    .row-selected { background-color: #e6f0ff; }
+}
+</style>
+</head>
+<body class="bg-white min-h-screen">
+
+<!-- Mobile hamburger button -->
+<button id="hamburger" class="md:hidden fixed top-4 left-4 z-[99999] text-xl text-gray-700">
+    <div class="py-2 px-4 bg-gray-100 rounded-full shadow-lg">
+        <i class="fa-solid fa-bars"></i>
+    </div>
+</button>
+
+<!-- Sidebar -->
+<aside id="sidebar" class="w-[200px] min-h-screen bg-white sidebar-shadow fixed top-0 left-0 flex flex-col justify-between py-6 px-4
+    -translate-x-full md:translate-x-0 transition-transform duration-300 z-[99998]">
+
+    <!-- Close button -->
+    <button id="closeSidebar" class="md:hidden absolute top-4 right-4 text-xl text-gray-500">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="mb-10 mt-6">
+        <img src="{% static "img/logo/logo.png" %}" alt="品牌標誌" class="h-12 object-contain">
+    </div>
+
+    <!-- Side navigation menu -->
+    <div class="flex-1">
+        {% comment %} <p class="text-xs text-gray-500 mb-3 tracking-wide">一般功能</p> {% endcomment %}
+        <nav class="flex flex-col gap-2">
+
+            {# Course Schdule #}
+            <a href="{% url "administration:schedule_list" %}"
+            class="rounded-lg py-2.5 px-3 flex items-center gap-3 text-xs
+                    {% if '/manage/schedules/' in request.path %}
+                    bg-gray-100 text-gray-600
+                    {% else %}
+                    hover:bg-gray-100 text-gray-700
+                    {% endif %}">
+                <i class="fa-solid fa-calendar-days w-5 text-center"></i>
+                <span>課程排期</span>
+            </a>
+
+            {# Course #}
+            <a href="{% url "courses:course_list" %}"
+            class="rounded-lg py-2.5 px-3 flex items-center gap-3 text-xs
+                    {% if '/manage/courses/' in request.path and '/manage/courses/template/' not in request.path %}
+                    bg-gray-100 text-gray-600
+                    {% else %}
+                    hover:bg-gray-100 text-gray-700
+                    {% endif %}">
+                <i class="fa-solid fa-book-open w-5 text-center"></i>
+                <span>課程</span>
+            </a>
+
+            {# Course Template #}
+            <a href="{% url "courses:coursetemp_list" %}"
+            class="rounded-lg py-2.5 px-3 flex items-center gap-3 text-xs
+                    {% if '/manage/courses/template/' in request.path %}
+                    bg-gray-100 text-gray-600
+                    {% else %}
+                    hover:bg-gray-100 text-gray-700
+                    {% endif %}">
+                <i class="fa-solid fa-table-columns w-5 text-center"></i>
+                <span>課程範本</span>
+            </a>
+
+            {# Student #}
+            <a href="{% url "students:student_list" %}"
+            class="rounded-lg py-2.5 px-3 flex items-center gap-3 text-xs
+                    {% if '/manage/students/' in request.path %}
+                    bg-gray-100 text-gray-600
+                    {% else %}
+                    hover:bg-gray-100 text-gray-700
+                    {% endif %}">
+                <i class="fa-solid fa-users w-5 text-center"></i>
+                <span>學生</span>
+            </a>
+
+            {# Teacher #}
+            <a href="{% url "teachers:teacher_list" %}"
+            class="rounded-lg py-2.5 px-3 flex items-center gap-3 text-xs
+                    {% if '/manage/teachers/' in request.path %}
+                    bg-gray-100 text-gray-600
+                    {% else %}
+                    hover:bg-gray-100 text-gray-700
+                    {% endif %}">
+                <i class="fa-solid fa-chalkboard-user w-5 text-center"></i>
+                <span>教師</span>
+            </a>
+
+            {# NEWS #}
+            <a href="{% url "web_contents:news_list" %}"
+            class="rounded-lg py-2.5 px-3 flex items-center gap-3 text-xs
+                    {% if '/manage/web_contents/' in request.path %}
+                    bg-gray-100 text-gray-600
+                    {% else %}
+                    hover:bg-gray-100 text-gray-700
+                    {% endif %}">
+                <i class="fa-solid fa-newspaper w-5 text-center"></i>
+                <span>最新消息</span>
+            </a>
+
+            {# Transactions #}
+            <a href="{% url "administration:transaction_list" %}"
+            class="rounded-lg py-2.5 px-3 flex items-center gap-3 text-xs
+                    {% if '/manage/transactions' in request.path %}
+                    bg-gray-100 text-gray-600
+                    {% else %}
+                    hover:bg-gray-100 text-gray-700
+                    {% endif %}">
+                <i class="fa-solid fa-file-invoice-dollar w-5 text-center"></i>
+                <span>交易記錄</span>
+            </a>
+
+            {# Dashboard #}
+            <a href="{% url "administration:dashboard" %}"
+            class="rounded-lg py-2.5 px-3 flex items-center gap-3 text-xs
+                    {% if '/manage/dashboard' in request.path %}
+                    bg-gray-100 text-gray-600
+                    {% else %}
+                    hover:bg-gray-100 text-gray-700
+                    {% endif %}">
+                <i class="fa-solid fa-gauge-high w-5 text-center"></i>
+                <span>收益分析</span>
+            </a>
+            
+        </nav>
+    </div>
+
+    {% if request.session.staff_id %}
+    <div class="mt-8">
+        <p class="text-xs mb-3">您好，{{request.session.staff_name}}！</p>
+        <a href="javascript:{document.getElementById('logout').submit()}">
+            <form action="{% url "administration:staff_logout" %}" method="Post" id="logout">
+            {% csrf_token %}<input type="hidden">
+                <button class="border border-blue-500 rounded-lg py-2 px-3 text-blue-500 flex items-center gap-2 hover:bg-blue-50 text-xs">
+                <i class="fa-solid fa-right-from-bracket"></i> 登出
+                </button>
+            </form>
+        </a>    
+    </div>
+    {% endif %}
+</aside>
+
+<!-- Mobile overlay mask -->
+<div id="overlay" class="hidden fixed inset-0 bg-black/20 z-[99997] md:hidden"></div>
+
+<!-- Main content area -->
+{% block content %}{% endblock %}
+
+<script>
+// Hamburger sidebar control
+const hamburger = document.getElementById('hamburger');
+const sidebar = document.getElementById('sidebar');
+const closeSidebar = document.getElementById('closeSidebar');
+const overlay = document.getElementById('overlay');
+
+hamburger.addEventListener('click', () => {
+    sidebar.classList.remove('-translate-x-full');
+    overlay.classList.remove('hidden');
+    hamburger.classList.add('hidden');
+});
+function closeMenu() {
+    sidebar.classList.add('-translate-x-full');
+    overlay.classList.add('hidden');
+    hamburger.classList.remove('hidden');
+}
+closeSidebar.addEventListener('click', closeMenu);
+overlay.addEventListener('click', closeMenu);
+
+// Global dropdown menu handler
+const globalMoreMenu = document.getElementById('globalMoreMenu');
+function closeAllMenus() {
+    globalMoreMenu.classList.add('hidden');
+    document.querySelectorAll('.dropdown-filter > div, .dropdown-action > div').forEach(m => m.classList.add('hidden'));
+}
+
+// More operation dropdown
+document.querySelectorAll('.more-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAllMenus();
+        const rect = btn.getBoundingClientRect();
+        globalMoreMenu.style.left = rect.left - 130 + 'px';
+        globalMoreMenu.style.top = rect.top + 10 + 'px';
+        globalMoreMenu.classList.remove('hidden');
+    });
+});
+
+// Filter & Action dropdown
+document.querySelectorAll('.dropdown-filter, .dropdown-action').forEach(wrap => {
+    const btn = wrap.querySelector('button');
+    const menu = wrap.querySelector('div');
+    btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const open = !menu.classList.contains('hidden');
+        closeAllMenus();
+        if (!open) menu.classList.remove('hidden');
+    });
+});
+
+document.addEventListener('click', closeAllMenus);
+
+// Highlight selected table row
+document.querySelectorAll('.row-check').forEach(ck => {
+    ck.addEventListener('change', () => {
+        ck.closest('.table-row').classList.toggle('row-selected', ck.checked);
+    });
+});
+</script>
+</body>
+</html>

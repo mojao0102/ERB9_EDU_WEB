@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>課程管理與報名平台 — 系統展示</title>
+<style>
+:root{--blue:#0033A0;--orange:#FF6B00;--black:#0A0A0A;--bg:#F8F8F8;--border:#E0E0E0}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#bbb;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:20px}
+.deck{display:flex;height:100vh;transition:transform .38s cubic-bezier(.77,0,.18,1)}
+.slide{min-width:100vw;height:100vh;background:var(--bg);display:flex;overflow:hidden;position:relative}
+#progress{position:fixed;top:0;left:0;height:3px;background:var(--blue);transition:width .4s;z-index:999}
+.nav{position:fixed;bottom:1.5rem;right:2rem;z-index:100;display:flex;gap:.5rem;align-items:center}
+.nav button{width:2.5rem;height:2.5rem;border:2px solid var(--black);background:var(--bg);cursor:pointer;font-size:1.1rem;font-weight:900;transition:background .15s}
+.nav button:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+#counter{font-size:1rem;font-weight:700;letter-spacing:.05em;color:var(--black);min-width:4rem;text-align:center}
+.tp{width:45%;padding:clamp(1.5rem,3.5vw,3.5rem);display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--border);overflow:hidden}
+.tp.wide{width:55%}
+.ip{flex:1;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+.ip img{width:100%;height:100%;object-fit:contain;object-position:center center;display:block}
+.ip.two img{height:50%;object-fit:contain;object-position:center top}
+.ip.two img:first-child{border-bottom:1px solid var(--border)}
+.ip.three img{height:33.33%;object-fit:contain;object-position:center top}
+.ip.three img:not(:last-child){border-bottom:1px solid var(--border)}
+.no-ip{flex:1;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:3rem}
+.ph{border:2px dashed var(--border);width:100%;height:75%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.75rem}
+.ph span{font-size:1rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.3}
+.lbl{font-size:1rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--blue);margin-bottom:.9rem}
+.clbl{font-size:1rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;opacity:.4;margin-bottom:.9rem}
+h1{font-size:clamp(2.5rem,5vw,4.5rem);font-weight:900;line-height:.95;letter-spacing:-.03em;color:var(--black);margin-bottom:1.1rem}
+h2{font-size:clamp(1.7rem,2.8vw,2.6rem);font-weight:900;line-height:1;letter-spacing:-.02em;color:var(--black);margin-bottom:.9rem}
+.sub{font-size:1.05rem;color:var(--black);opacity:.6;line-height:1.6;max-width:34ch;margin-bottom:1.4rem}
+.ep{display:inline-block;font-family:'Courier New',monospace;font-size:.95rem;font-weight:700;background:var(--blue);color:#fff;padding:.28rem .65rem;margin-bottom:.7rem;letter-spacing:.02em;word-break:break-all;line-height:1.5}
+.ep.o{background:var(--orange)}
+.rule{width:3rem;height:3px;background:var(--blue);margin-bottom:1.1rem}
+.rule.o{background:var(--orange)}
+ul.ft{list-style:none;padding:0;display:flex;flex-direction:column;gap:.55rem}
+ul.ft li{font-size:1rem;line-height:1.5;color:var(--black);opacity:.8;padding-left:1.2rem;position:relative}
+ul.ft li::before{content:'—';position:absolute;left:0;color:var(--blue);font-weight:700}
+.tags{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:1.2rem}
+.tag{border:1.5px solid var(--black);padding:.25rem .7rem;font-size:1rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.role{display:inline-block;font-size:1rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .8rem;margin-bottom:.7rem;color:#fff;background:var(--blue)}
+.role.s{background:var(--orange)}
+.ch{align-items:center;justify-content:center;flex-direction:column;text-align:center}
+.ch .rule{margin:0 auto 1.1rem}
+.ch h2{font-size:clamp(2rem,4vw,3.4rem);max-width:22ch;text-align:center}
+.flow{display:flex;align-items:center;gap:0;margin-top:1.75rem;flex-wrap:wrap;justify-content:center}
+.fs{background:var(--blue);color:#fff;padding:.6rem 1.1rem;font-size:1rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.fs.o{background:var(--orange)}
+.fa{font-size:1.1rem;font-weight:900;color:var(--black);padding:0 .3rem}
+.cover{align-items:center;justify-content:center;flex-direction:column;padding:clamp(3rem,6vw,6rem)}
+#lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center}
+#lb.on{display:flex}
+#lb img{max-width:92vw;max-height:92vh;object-fit:contain}
+.ip img{cursor:zoom-in}
+.cov{max-width:600px}
+.stat-row{display:flex;gap:2.5rem;margin-top:1.4rem}
+.stat h3{font-size:2.8rem;font-weight:900;line-height:1;color:var(--blue)}
+.stat p{font-size:1rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.4;margin-top:.1rem}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;margin-top:1rem}
+.ic{border:2px solid var(--border);padding:1.1rem}
+.ic.b{border-color:var(--blue)}.ic.o{border-color:var(--orange)}
+.ic h4{font-size:1rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.65rem}
+.ic ul{list-style:none;padding:0;display:flex;flex-direction:column;gap:.35rem}
+.ic ul li{font-size:1rem;opacity:.75;padding-left:1rem;position:relative}
+.ic ul li::before{content:'→';position:absolute;left:0;font-weight:700}
+.note{margin-top:.9rem;padding:.65rem .9rem;background:#fff;border:1.5px solid var(--border);font-size:1rem;opacity:.6;line-height:1.6}
+@keyframes fadeUp{from{opacity:0;transform:translateY(1rem)}to{opacity:1;transform:none}}
+@keyframes slideInR{from{opacity:0;transform:translateX(2rem)}to{opacity:1;transform:none}}
+@keyframes ruleExpand{from{width:0}to{width:3rem}}
+.slide.active .rule,.ch.active .rule,.cover.active .rule{animation:ruleExpand .5s .05s cubic-bezier(.22,1,.36,1) both}
+.slide .tp>*,.slide .ip,.slide .no-ip,.cover .cov>*,.ch>*{opacity:0}
+.slide.active .tp>*:nth-child(1){animation:fadeUp .4s .06s cubic-bezier(.22,1,.36,1) forwards}
+.slide.active .tp>*:nth-child(2){animation:fadeUp .4s .13s cubic-bezier(.22,1,.36,1) forwards}
+.slide.active .tp>*:nth-child(3){animation:fadeUp .4s .20s cubic-bezier(.22,1,.36,1) forwards}
+.slide.active .tp>*:nth-child(4){animation:fadeUp .4s .27s cubic-bezier(.22,1,.36,1) forwards}
+.slide.active .tp>*:nth-child(5){animation:fadeUp .4s .34s cubic-bezier(.22,1,.36,1) forwards}
+.slide.active .tp>*:nth-child(6){animation:fadeUp .4s .41s cubic-bezier(.22,1,.36,1) forwards}
+.slide.active .ip,.slide.active .no-ip{animation:slideInR .42s .10s cubic-bezier(.22,1,.36,1) forwards}
+.ch.active>*:nth-child(1){animation:fadeUp .42s .00s cubic-bezier(.22,1,.36,1) forwards}
+.ch.active>*:nth-child(2){animation:fadeUp .42s .08s cubic-bezier(.22,1,.36,1) forwards}
+.ch.active>*:nth-child(3){animation:fadeUp .42s .16s cubic-bezier(.22,1,.36,1) forwards}
+.ch.active>*:nth-child(4){animation:fadeUp .42s .24s cubic-bezier(.22,1,.36,1) forwards}
+.ch.active>*:nth-child(5){animation:fadeUp .42s .32s cubic-bezier(.22,1,.36,1) forwards}
+.cover.active .cov>*:nth-child(1){animation:fadeUp .45s .08s cubic-bezier(.22,1,.36,1) forwards}
+.cover.active .cov>*:nth-child(2){animation:fadeUp .45s .16s cubic-bezier(.22,1,.36,1) forwards}
+.cover.active .cov>*:nth-child(3){animation:fadeUp .45s .24s cubic-bezier(.22,1,.36,1) forwards}
+.cover.active .cov>*:nth-child(4){animation:fadeUp .45s .32s cubic-bezier(.22,1,.36,1) forwards}
+.cover.active .cov>*:nth-child(5){animation:fadeUp .45s .40s cubic-bezier(.22,1,.36,1) forwards}
+#progress{height:4px;box-shadow:0 0 8px rgba(0,51,160,.4)}
+.nav button{border-radius:2px;transition:background .15s,transform .1s}
+.nav button:active{transform:scale(.92)}
+@keyframes ruleExpand{from{width:0}to{width:3rem}}
+.slide.active .rule,.ch.active .rule,.cover.active .rule{animation:ruleExpand .5s .05s cubic-bezier(.22,1,.36,1) both}
+#grain{position:fixed;inset:0;pointer-events:none;z-index:998;opacity:.035}
+.toc-entry{break-inside:avoid;margin-bottom:.28rem}
+.toc-entry button{background:none;border:none;cursor:pointer;text-align:left;width:100%;padding:.18rem .3rem;font-size:.82rem;color:var(--black);opacity:.7;line-height:1.3;transition:opacity .15s,color .15s}
+.toc-entry button:hover{opacity:1;color:var(--blue)}
+.toc-entry.ch-header button{font-weight:800;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);opacity:.5;pointer-events:none;margin-top:.7rem}
+.toc-num{font-size:.68rem;font-weight:800;color:var(--blue);margin-right:.25rem;opacity:.6}
+.back-btn{position:absolute;bottom:1.4rem;left:1.4rem;z-index:50;background:var(--bg);border:1.5px solid var(--border);padding:.22rem .6rem;font-size:.72rem;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:background .15s,color .15s,border-color .15s}
+.back-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+#pgbar{position:fixed;bottom:.7rem;left:50%;transform:translateX(-50%);z-index:200;display:flex;gap:3px;max-width:75vw;overflow-x:auto;padding:.35rem .6rem;scrollbar-width:none;background:rgba(255,255,255,.7);backdrop-filter:blur(6px);border-radius:99px}
+#pgbar::-webkit-scrollbar{display:none}
+.pgdot{width:7px;height:7px;border-radius:4px;background:rgba(0,0,0,.18);cursor:pointer;transition:all .22s cubic-bezier(.22,1,.36,1);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0;font-weight:800;color:#fff;line-height:1}
+.pgdot.active{background:var(--blue);width:22px}
+#pgbar:hover .pgdot{width:26px;height:22px;font-size:.62rem;background:rgba(0,0,0,.12)}
+#pgbar:hover .pgdot.active{background:var(--blue);color:#fff}
+#pgbar:hover .pgdot:hover{background:var(--blue);color:#fff;transform:translateY(-3px)}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="deck" id="deck">
+<!-- S1 Cover -->
+<div class="slide cover">
+  <div class="cov">
+    <div class="clbl">NGO 課程管理系統 — 系統展示 2026</div>
+    <div class="rule"></div>
+    <h1>課程管理<br>與報名平台</h1>
+    <p class="sub">為香港非牟利機構而設計的一站式課程管理系統</p>
+    <div class="tags"><span class="tag">Django 5.2</span><span class="tag">PostgreSQL</span><span class="tag">Stripe API</span><span class="tag">前台 + 後台 + 報表</span></div>
+  </div>
+</div>
+<!-- TOC 目錄 -->
+<div class="slide" id="toc-slide">
+  <div class="tp" style="width:28%">
+    <div class="lbl">內容目錄</div><div class="rule"></div>
+    <h2>所有頁面</h2>
+    <p class="sub" style="font-size:.9rem">點擊標題跳轉到對應頁面</p>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:2rem 2.5rem;display:flex;align-items:flex-start">
+    <div id="toc-list" style="columns:2;column-gap:2rem;width:100%"></div>
+  </div>
+</div>
+<!-- S2 Overview -->
+<div class="slide" style="align-items:center;">
+  <div class="tp" style="width:100%;border:none;max-width:1060px;margin:0 auto;">
+    <div class="lbl">系統架構概覽</div><div class="rule"></div>
+    <h2>三層權限架構</h2>
+    <div class="two-col">
+      <div class="ic b"><h4>訪客（未登入）</h4><ul><li>瀏覽首頁及消息公告</li><li>瀏覽課程列表及詳情</li></ul></div>
+      <div class="ic b"><h4>學生（已登入）</h4><ul><li>帳號註冊 / Email 驗證</li><li>Stripe 付款報名</li><li>個人儀表板 · 課堂日曆</li><li>下載收據 PDF</li></ul></div>
+      <div class="ic o" style="grid-column:1/-1;"><h4 style="color:var(--orange)">職員（後台）</h4><ul style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem 2rem;"><li>課程模板 / 課程管理 / 排期總覽</li><li>學生管理 / 導師管理</li><li>報名管理 / 退款處理</li><li>交易記錄 / 收益分析 / 消息公告</li></ul></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><h3>65</h3><p>個 Endpoints</p></div>
+      <div class="stat"><h3>3</h3><p>權限層級</p></div>
+      <div class="stat"><h3>12</h3><p>功能模組</p></div>
+    </div>
+  </div>
+</div>
+<!-- S-EP1: 訪客 + 學生 Endpoints -->
+<div class="slide" style="align-items:center;">
+  <div class="tp" style="width:100%;border:none;max-width:1100px;margin:0 auto;padding:2.5rem 3rem;">
+    <div class="lbl">系統 Endpoints 一覽 (1/3)</div><div class="rule"></div>
+    <h2>訪客 + 學生 — 25 個 Endpoints</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem 2rem;margin-top:1.25rem;">
+      <div>
+        <div style="font-size:1rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin-bottom:.5rem;border-bottom:2px solid var(--blue);padding-bottom:.25rem;">訪客 — 公開頁面</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.4rem;">
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/about/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/newses/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/newses/&lt;id&gt;</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/course_list/&lt;hash_mc&gt;/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/course/&lt;hash&gt;/</code>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:1rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin-bottom:.5rem;border-bottom:2px solid var(--blue);padding-bottom:.25rem;">學生 — 帳號</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.4rem;">
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/register/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/register/pending/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/register/change-email/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/emailverify/&lt;uid&gt;/&lt;token&gt;/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/login/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/logout/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/edit_userinfo/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/change_password/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/forget_password/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/reset_password/&lt;uid&gt;/&lt;token&gt;/</code>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:1rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin-bottom:.5rem;border-bottom:2px solid var(--blue);padding-bottom:.25rem;">學生 — 報名付款</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.4rem;">
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/course/&lt;hash&gt;/pay/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/payment_successful/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/payment_fail/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/stripe/webhook/</code>
+        </div>
+        <div style="font-size:1rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin-bottom:.5rem;border-bottom:2px solid var(--blue);padding-bottom:.25rem;margin-top:1rem;">學生 — 儀表板</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.4rem;">
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/student_dashboard/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/student_dashboard/payment_receipt/&lt;hash&gt;/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/student_dashboard/refund_receipt/&lt;hash&gt;/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/student/my-calendar/</code>
+          <code style="font-size:.85rem;background:#eef2ff;padding:.15rem .4rem;">/student/api/calendar-events/</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S-EP2: 職員 Endpoints -->
+<div class="slide" style="align-items:center;">
+  <div class="tp" style="width:100%;border:none;max-width:100%;margin:0 auto;padding:2rem 3rem;">
+    <div class="lbl">系統 Endpoints 一覽 (2/3)</div><div class="rule o"></div>
+    <h2>職員 — 後台 40 個 Endpoints</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem 2rem;margin-top:1.25rem;">
+      <div>
+        <div style="font-size:1rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.5rem;border-bottom:2px solid var(--orange);padding-bottom:.25rem;">登入 / 控制板</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.4rem;">
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/login/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/logout/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/dashboard</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/schedules/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/transactions/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/transactions/export/csv/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/transactions/export/pdf/</code>
+        </div>
+        <div style="font-size:1rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.5rem;border-bottom:2px solid var(--orange);padding-bottom:.25rem;margin-top:1rem;">課程模板</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.4rem;">
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/template/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/template/create/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/template/edit/&lt;hash&gt;/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/template/delete/&lt;hash&gt;/</code>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:1rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.5rem;border-bottom:2px solid var(--orange);padding-bottom:.25rem;">課程管理</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.4rem;">
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/list/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/create/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/edit/&lt;hash&gt;/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/view/&lt;hash&gt;/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/download_payment_receipt/&lt;hash&gt;/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/download_refund_receipt/&lt;hash&gt;/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/publish/set/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/promote/set/</code>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:1rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.5rem;border-bottom:2px solid var(--orange);padding-bottom:.25rem;">導師管理</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.4rem;">
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/teachers/list/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/teachers/create/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/teachers/view/&lt;hash&gt;</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/teachers/edit/&lt;hash&gt;</code>
+        </div>
+        <div style="font-size:1rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.5rem;border-bottom:2px solid var(--orange);padding-bottom:.25rem;margin-top:1rem;">內容管理</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.4rem;">
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/web_contents/list/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/web_contents/create/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/web_contents/edit/&lt;id&gt;</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/web_contents/delete/&lt;id&gt;/</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S-EP3: 職員新增 Endpoints -->
+<div class="slide" style="align-items:center;">
+  <div class="tp" style="width:100%;border:none;max-width:1100px;margin:0 auto;padding:2rem 3rem;">
+    <div class="lbl">系統 Endpoints 一覽 (3/3)</div><div class="rule o"></div>
+    <h2>後台新增操作 — 學生 排期 狀態</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem 2rem;margin-top:1.25rem;">
+      <div>
+        <div style="font-size:1rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.5rem;border-bottom:2px solid var(--orange);padding-bottom:.25rem;">學生管理</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.4rem;">
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/students/list/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/students/create/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/students/edit/&lt;hash&gt;/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/students/view/&lt;hash&gt;/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/students/delete/&lt;hash&gt;/</code>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:1rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.5rem;border-bottom:2px solid var(--orange);padding-bottom:.25rem;">課程排期</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.4rem;">
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/&lt;hash&gt;/schedule/generate/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/&lt;hash&gt;/schedule/create/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/schedule/&lt;hash&gt;/edit/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/schedule/&lt;hash&gt;/delete/</code>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:1rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.5rem;border-bottom:2px solid var(--orange);padding-bottom:.25rem;">報名與狀態操作</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.4rem;">
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/publish/undo/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/promote/undo/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/signup/&lt;hash&gt;/cancel/</code>
+          <code style="font-size:.85rem;background:#fff3ee;padding:.15rem .4rem;">/manage/courses/signup/&lt;hash&gt;/refund/</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S-MOD: 12個功能模組 -->
+<div class="slide" style="align-items:center;">
+  <div class="tp" style="width:100%;border:none;max-width:1060px;margin:0 auto;padding:2.5rem 3rem;">
+    <div class="lbl">功能模組概覽</div><div class="rule"></div>
+    <h2>12 個功能模組</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.85rem;margin-top:1.25rem;">
+      <div class="ic b"><h4 style="color:var(--blue);">01 帳號系統</h4><ul><li>註冊 / 登入</li><li>Email 驗證</li><li>密碼重設</li></ul></div>
+      <div class="ic b"><h4 style="color:var(--blue);">02 課程瀏覽</h4><ul><li>分類列表</li><li>課程詳情</li><li>狀態顯示</li></ul></div>
+      <div class="ic b"><h4 style="color:var(--blue);">03 報名付款</h4><ul><li>Stripe 付款</li><li>Webhook 確認</li><li>PDF 收據</li></ul></div>
+      <div class="ic b"><h4 style="color:var(--blue);">04 學生儀表板</h4><ul><li>報名記錄</li><li>收據下載</li><li>課堂日曆</li></ul></div>
+      <div class="ic o"><h4 style="color:var(--orange);">05 課程管理</h4><ul><li>模板管理</li><li>課程 CRUD</li><li>批量發佈推廣</li></ul></div>
+      <div class="ic o"><h4 style="color:var(--orange);">06 課程排期</h4><ul><li>日期區間檢視</li><li>自動排班</li><li>手動調整課堂</li></ul></div>
+      <div class="ic o"><h4 style="color:var(--orange);">07 學生管理</h4><ul><li>學生清單</li><li>資料編輯</li><li>報名與交易詳情</li></ul></div>
+      <div class="ic o"><h4 style="color:var(--orange);">08 導師管理</h4><ul><li>導師資料</li><li>新增/編輯</li><li>課程關聯</li></ul></div>
+      <div class="ic o"><h4 style="color:var(--orange);">09 報名管理</h4><ul><li>學生名單</li><li>取消報名</li><li>退款處理</li></ul></div>
+      <div class="ic o"><h4 style="color:var(--orange);">10 交易記錄</h4><ul><li>收款退款篩選</li><li>CSV 匯出</li><li>PDF 報表</li></ul></div>
+      <div class="ic o"><h4 style="color:var(--orange);">11 收益分析</h4><ul><li>月度年度統計</li><li>走勢圖</li><li>類別排行</li></ul></div>
+      <div class="ic o"><h4 style="color:var(--orange);">12 內容管理</h4><ul><li>消息公告</li><li>發佈/編輯</li><li>前台顯示</li></ul></div>
+    </div>
+  </div>
+</div>
+
+<!-- CH1 訪客 -->
+<div class="slide ch">
+  <div class="clbl">章節 01 — 訪客</div><div class="rule"></div>
+  <h2>公開頁面</h2>
+  <p class="sub">無需登入即可瀏覽的公開內容</p>
+  <div class="flow"><div class="fs">首頁</div><div class="fa">›</div><div class="fs">消息</div><div class="fa">›</div><div class="fs">課程列表</div><div class="fa">›</div><div class="fs">課程詳情</div><div class="fa">›</div><div class="fs o">需登入報名</div></div>
+</div>
+<!-- S3 首頁 -->
+<div class="slide">
+  <div class="tp"><div class="role">訪客</div><div class="lbl">公開頁面</div><div class="rule"></div><h2>首頁</h2>
+    <div class="ep">/</div>
+    <ul class="ft"><li>機構品牌首頁</li><li>熱門課程展示區塊</li><li>最新消息公告列表</li><li>導航至各課程分類</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/首頁.png" alt="首頁"></div>
+</div>
+<!-- S4 首頁區塊雙圖 -->
+<div class="slide">
+  <div class="tp"><div class="role">訪客</div><div class="lbl">公開頁面</div><div class="rule"></div><h2>熱門課程<br>與最新消息</h2>
+    <div class="ep">/</div>
+    <ul class="ft"><li>熱門課程卡片（含狀態標示）</li><li>最新消息列表</li><li>點擊進入課程詳情頁</li></ul>
+  </div>
+  <div class="ip two"><img src="NGOPPT/首頁熱門課程.png" alt="熱門課程"><img src="NGOPPT/首頁最新消息.png" alt="最新消息"></div>
+</div>
+<!-- S5 關於我們 -->
+<div class="slide">
+  <div class="tp wide"><div class="role">訪客</div><div class="lbl">公開頁面</div><div class="rule"></div><h2>關於我們</h2>
+    <div class="ep">/about/</div>
+    <ul class="ft"><li>機構簡介頁面</li><li>展示機構使命及服務</li></ul>
+  </div>
+  <div class="ip two"><img src="NGOPPT/首頁關於我們.png" alt="關於我們"><img src="NGOPPT/首頁關於我們地圖.png" alt="地圖"></div>
+</div>
+<!-- S6 消息列表 -->
+<div class="slide">
+  <div class="tp wide"><div class="role">訪客</div><div class="lbl">公開頁面</div><div class="rule"></div><h2>消息列表<br>與消息詳情</h2>
+    <div class="ep">/newses/</div>
+    <div class="ep">/newses/&lt;news_id&gt;</div>
+    <ul class="ft"><li>列出所有已發佈消息公告</li><li>點擊進入單篇消息詳情</li><li>由後台職員發佈及管理</li></ul>
+  </div>
+  <div class="ip two"><img src="NGOPPT/首頁最新消息.png" alt="消息列表"><img src="NGOPPT/首頁最新消息 copy.png" alt="消息詳情"></div>
+</div>
+<!-- S7 課程列表 -->
+<div class="slide">
+  <div class="tp"><div class="role">訪客</div><div class="lbl">公開頁面</div><div class="rule"></div><h2>課程列表</h2>
+    <div class="ep">/course_list/&lt;hash_mc&gt;/</div>
+    <ul class="ft"><li>按主分類顯示課程</li><li>子分類 Banner 展示</li><li>課程狀態標示（報名中 / 人數已滿）</li><li>Hash ID 保護課程 URL</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/課程列表前台.png" alt="課程列表"></div>
+</div>
+<!-- S8 課程詳情 -->
+<div class="slide">
+  <div class="tp"><div class="role">訪客</div><div class="lbl">公開頁面</div><div class="rule"></div><h2>課程詳情頁</h2>
+    <div class="ep">/course/&lt;hash_course&gt;/</div>
+    <ul class="ft"><li>課程完整資訊（名稱、描述、導師）</li><li>上課日期、時間、節數、學費</li><li>報名截止日期</li><li>報名按鈕（未登入則導向登入頁）</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/前台課程內容.png" alt="課程詳情"></div>
+</div>
+<!-- CH2 學生帳號 -->
+<div class="slide ch">
+  <div class="clbl">章節 02 — 學生</div><div class="rule"></div>
+  <h2>學生帳號系統</h2>
+  <p class="sub">完整的帳號生命週期管理</p>
+  <div class="flow"><div class="fs">註冊</div><div class="fa">›</div><div class="fs o">Email驗證</div><div class="fa">›</div><div class="fs">登入</div><div class="fa">›</div><div class="fs">修改資料</div><div class="fa">›</div><div class="fs o">忘記密碼</div></div>
+</div>
+<!-- S9 會員註冊 -->
+<div class="slide">
+  <div class="tp"><div class="role">學生</div><div class="lbl">帳號系統</div><div class="rule"></div><h2>會員註冊</h2>
+    <div class="ep">/register/</div>
+    <ul class="ft"><li>填寫中英文姓名、出生日期、學校</li><li>設定帳號及密碼（最少6位）</li><li>緊急聯絡人資料（最多2位）</li><li>電郵地址（用作驗證及通知）</li><li>重複帳號 / Email 自動檢查</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/會員註冊.png" alt="會員註冊"></div>
+</div>
+<!-- S10 等待驗證 -->
+<div class="slide">
+  <div class="tp"><div class="role">學生</div><div class="lbl">帳號系統</div><div class="rule"></div><h2>等待 Email 驗證</h2>
+    <div class="ep">/register/pending/</div>
+    <div class="ep">/register/change-email/</div>
+    <ul class="ft"><li>提示學生查收驗證郵件</li><li>可更改 Email 重新發送</li><li>未驗證帳號功能受限</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/會員註冊後驗證.png" alt="等待驗證"></div>
+</div>
+<!-- S11 驗證電郵雙圖 -->
+<div class="slide">
+  <div class="tp"><div class="role">學生</div><div class="lbl">帳號系統</div><div class="rule"></div><h2>驗證電郵</h2>
+    <div class="ep">/emailverify/&lt;uidb64&gt;/&lt;token&gt;/</div>
+    <ul class="ft"><li>系統發送 HTML 格式驗證郵件</li><li>含安全 Token 的啟用連結</li><li>點擊連結後即啟用帳號</li></ul>
+  </div>
+  <div class="ip two"><img src="NGOPPT/會員驗證EMAIL.png" alt="收件箱"><img src="NGOPPT/會員驗證電郵.png" alt="郵件內容"></div>
+</div>
+<!-- S12 驗證結果雙圖 -->
+<div class="slide">
+  <div class="tp"><div class="role">學生</div><div class="lbl">帳號系統</div><div class="rule"></div><h2>驗證成功與失敗</h2>
+    <div class="ep">/emailverify/&lt;uidb64&gt;/&lt;token&gt;/</div>
+    <ul class="ft"><li>Token 有效 → 帳號即時啟用</li><li>Token 過期或無效 → 顯示失敗提示</li><li>失敗後可重新發送驗證郵件</li></ul>
+  </div>
+  <div class="ip two"><img src="NGOPPT/會員驗證成功.png" alt="驗證成功"><img src="NGOPPT/會員驗證失敗.png" alt="驗證失敗"></div>
+</div>
+<!-- S13 登入 -->
+<div class="slide">
+  <div class="tp"><div class="role">學生</div><div class="lbl">帳號系統</div><div class="rule"></div><h2>會員登入</h2>
+    <div class="ep">/login/</div>
+    <div class="ep">/logout/</div>
+    <ul class="ft"><li>帳號 + 密碼登入</li><li>Session 管理</li><li>未驗證 Email 者自動跳轉驗證頁</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/會員登入.png" alt="會員登入"></div>
+</div>
+<!-- S14 修改資料 -->
+<div class="slide">
+  <div class="tp"><div class="role">學生</div><div class="lbl">帳號系統</div><div class="rule"></div><h2>修改個人資料</h2>
+    <div class="ep">/edit_userinfo/</div>
+    <ul class="ft"><li>修改姓名、出生日期、學校</li><li>修改緊急聯絡人資料</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/會員資料修改.png" alt="修改個人資料"></div>
+</div>
+<!-- S15 修改密碼 -->
+<div class="slide">
+  <div class="tp"><div class="role">學生</div><div class="lbl">帳號系統</div><div class="rule"></div><h2>修改密碼</h2>
+    <div class="ep">/change_password/</div>
+    <ul class="ft"><li>輸入現有密碼驗證身份</li><li>設定新密碼（最少6位）</li><li>確認新密碼一致</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/會員修改密碼.png" alt="修改密碼"></div>
+</div>
+<!-- S16 忘記密碼 -->
+<div class="slide">
+  <div class="tp wide"><div class="role">學生</div><div class="lbl">帳號系統</div><div class="rule"></div><h2>忘記密碼<br>密碼重設</h2>
+    <div class="ep">/forget_password/</div>
+    <div class="ep">/reset_password/&lt;uidb64&gt;/&lt;token&gt;/</div>
+    <ul class="ft"><li>輸入已註冊電郵申請重設</li><li>系統發送含安全 Token 的重設連結</li><li>連結 3 天後自動失效</li><li>Token 使用後即失效防止重複使用</li></ul>
+  </div>
+  <div class="ip two"><img src="NGOPPT/會員忘記密碼.png" alt="忘記密碼"><img src="NGOPPT/會員修改密碼.png" alt="密碼重設"></div>
+</div>
+<!-- CH3 報名付款 -->
+<div class="slide ch">
+  <div class="clbl">章節 03 — 學生</div><div class="rule o"></div>
+  <h2>報名與付款流程</h2>
+  <p class="sub">從選擇課程到完成付款的完整流程</p>
+  <div class="flow"><div class="fs">確認報名</div><div class="fa">›</div><div class="fs o">Stripe付款</div><div class="fa">›</div><div class="fs o">報名成功</div></div>
+</div>
+<!-- S17 報名確認 -->
+<div class="slide">
+  <div class="tp"><div class="role">學生</div><div class="lbl">報名付款</div><div class="rule o"></div><h2>報名確認頁</h2>
+    <div class="ep o">/course/&lt;hash_course&gt;/pay/</div>
+    <ul class="ft"><li>顯示課程名稱及費用摘要</li><li>確認報名前最後確認頁</li><li>點擊後導向 Stripe 付款</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/課程報名確定.png" alt="報名確認"></div>
+</div>
+<!-- S18 課程額滿 -->
+<div class="slide">
+  <div class="tp"><div class="role">學生</div><div class="lbl">報名付款</div><div class="rule o"></div><h2>課程額滿</h2>
+    <div class="ep">/course/&lt;hash_course&gt;/</div>
+    <ul class="ft"><li>報名人數達上限時自動顯示</li><li>學生無法繼續進行報名</li><li>動態狀態由系統即時計算</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/課程報名已滿.png" alt="課程額滿"></div>
+</div>
+<!-- S19 Stripe 付款 -->
+<div class="slide">
+  <div class="tp"><div class="role">學生</div><div class="lbl">報名付款</div><div class="rule o"></div><h2>Stripe 信用卡付款</h2>
+    <div class="ep o">/course/&lt;hash&gt;/pay/ → Stripe</div>
+    <ul class="ft"><li>Stripe 託管安全付款頁面</li><li>支援 Visa / Mastercard 等</li><li>本系統不儲存任何信用卡資料</li><li>付款完成後 Webhook 回調確認</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/課程STRIPE付款.png" alt="Stripe付款"></div>
+</div>
+<!-- S20 付款成功 -->
+<div class="slide">
+  <div class="tp"><div class="role">學生</div><div class="lbl">報名付款</div><div class="rule o"></div><h2>報名成功</h2>
+    <div class="ep">/payment_successful/?session_id=...</div>
+    <ul class="ft"><li>Stripe Webhook 確認付款</li><li>自動建立報名記錄</li><li>自動發送確認 Email</li><li>收據可在儀表板下載</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/課程報名成功.png" alt="報名成功"></div>
+</div>
+<!-- S21 付款失敗 -->
+<div class="slide">
+  <div class="tp wide"><div class="role">學生</div><div class="lbl">報名付款</div><div class="rule o"></div><h2>付款失敗</h2>
+    <div class="ep">/payment_fail/</div>
+    <div class="ep">/stripe/webhook/</div>
+    <ul class="ft"><li>付款未成功時顯示失敗提示</li><li>提示學生重試或聯絡中心</li><li>Stripe Webhook 監聽所有付款事件</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/會員付款失敗.png" alt="付款失敗"></div>
+</div>
+<!-- CH4 學生儀表板 -->
+<div class="slide ch">
+  <div class="clbl">章節 04 — 學生</div><div class="rule"></div>
+  <h2>學生儀表板</h2>
+  <p class="sub">學生登入後的個人化管理中心</p>
+  <div class="flow"><div class="fs">課程狀態</div><div class="fa">›</div><div class="fs">歷史記錄</div><div class="fa">›</div><div class="fs">付款收據</div><div class="fa">›</div><div class="fs o">課堂日曆</div></div>
+</div>
+<!-- S22 課程狀態 -->
+<div class="slide">
+  <div class="tp"><div class="role">學生</div><div class="lbl">儀表板</div><div class="rule"></div><h2>課程狀態總覽</h2>
+    <div class="ep">/student_dashboard/</div>
+    <ul class="ft"><li>顯示所有進行中課程</li><li>課程動態狀態（報名中 / 進行中 / 已完結）</li><li>課程日期及時間資料</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/會員課程狀態.png" alt="課程狀態"></div>
+</div>
+<!-- S23 歷史記錄 -->
+<div class="slide">
+  <div class="tp"><div class="role">學生</div><div class="lbl">儀表板</div><div class="rule"></div><h2>課程歷史記錄</h2>
+    <div class="ep">/student_dashboard/</div>
+    <ul class="ft"><li>所有報名歷史記錄</li><li>已取消課程記錄</li><li>已完結課程記錄</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/會員課程歷史記錄.png" alt="歷史記錄"></div>
+</div>
+<!-- S24 付款記錄 -->
+<div class="slide">
+  <div class="tp"><div class="role">學生</div><div class="lbl">儀表板</div><div class="rule"></div><h2>付款記錄與收據</h2>
+    <div class="ep">/student_dashboard/</div>
+    <div class="ep">/student_dashboard/payment_receipt/&lt;hash&gt;/</div>
+    <div class="ep">/student_dashboard/refund_receipt/&lt;hash&gt;/</div>
+    <ul class="ft"><li>查看付款金額及日期</li><li>下載付款收據 PDF</li><li>下載退款收據 PDF</li></ul>
+  </div>
+  <div class="ip two"><img src="NGOPPT/會員付款記錄.png" alt="付款記錄"><img src="NGOPPT/會員報名收據.png" alt="付款收據"></div>
+</div>
+<!-- S25 課堂日曆 -->
+<div class="slide">
+  <div class="tp"><div class="role">學生</div><div class="lbl">儀表板</div><div class="rule"></div><h2>個人課堂日曆</h2>
+    <div class="ep">/student/my-calendar/</div>
+    <div class="ep">/student/api/calendar-events/</div>
+    <ul class="ft"><li>個人化課堂時間表</li><li>日曆視圖顯示所有報名課堂</li><li>API 動態載入事件資料</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/會員課程日程.png" alt="課堂日曆"></div>
+</div>
+<!-- CH5 職員後台 -->
+<div class="slide ch">
+  <div class="clbl">章節 05 — 職員</div><div class="rule o"></div>
+  <h2>後台管理系統</h2>
+  <p class="sub">職員專用管理後台，集中處理所有業務</p>
+  <div class="flow"><div class="fs o">登入</div><div class="fa">›</div><div class="fs o">營運總覽</div><div class="fa">›</div><div class="fs o">課程/排期</div><div class="fa">›</div><div class="fs o">報名/退款</div><div class="fa">›</div><div class="fs o">交易/資料</div></div>
+</div>
+<!-- S26 後台登入 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">後台管理</div><div class="rule o"></div><h2>後台職員登入</h2>
+    <div class="ep o">/manage/login/</div>
+    <div class="ep">/manage/logout/</div>
+    <ul class="ft"><li>職員帳號登入</li><li>獨立於前台學生帳號系統</li><li>Session 管理</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台登入.png" alt="後台登入"></div>
+</div>
+<!-- S27a 課程排期總覽 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">課程排期</div><div class="rule o"></div><h2>課程排期總覽</h2>
+    <div class="ep o">/manage/schedules/</div>
+    <ul class="ft"><li>依日期區間檢視所有課堂排期</li><li>支援課程導師課堂標題關鍵字搜尋</li><li>可直接進入排期管理及學生名單</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台課程排期 copy.png" alt="課程排期總覽"></div>
+</div>
+
+<!-- S27 後台控制板 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">收益分析</div><div class="rule o"></div><h2>收益分析儀表板</h2>
+    <div class="ep o">/manage/dashboard</div>
+    <ul class="ft"><li>按年份與月份查看營業淨額</li><li>顯示收款退款獨立學生及總報名人次</li><li>年度每月營業額走勢圖</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台收益分析.png" alt="收益分析"></div>
+</div>
+<!-- S27b 收益類別排行 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">收益分析</div><div class="rule o"></div><h2>熱門課程類別排行</h2>
+    <div class="ep o">/manage/dashboard</div>
+    <ul class="ft"><li>依月份統計課程類別報名總數</li><li>計算各類別淨收益並排序</li><li>協助中心判斷課程策略與資源投放</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台收益分析補充.png" alt="收益類別排行"></div>
+</div>
+<!-- S28 課程模板列表 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">課程管理</div><div class="rule o"></div><h2>課程模板列表</h2>
+    <div class="ep o">/manage/courses/template/</div>
+    <div class="ep o">/manage/courses/template/create/</div>
+    <ul class="ft"><li>查看所有已建立課程模板</li><li>新增可重用課程模板</li><li>模板包含課程基本資訊</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台課程模版列表.png" alt="課程模板列表"></div>
+</div>
+<!-- S29 課程模板編輯 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">課程管理</div><div class="rule o"></div><h2>課程模板編輯</h2>
+    <div class="ep o">/manage/courses/template/edit/&lt;hash&gt;/</div>
+    <ul class="ft"><li>編輯課程模板內容</li><li>設定課程名稱、描述、分類</li><li>模板供後續開設課程時使用</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台課程模板編輯.png" alt="課程模板編輯"></div>
+</div>
+<!-- S30 課程列表 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">課程管理</div><div class="rule o"></div><h2>課程列表管理</h2>
+    <div class="ep o">/manage/courses/list/</div>
+    <ul class="ft"><li>集中檢視課程類別、編號、導師、狀態及日期</li><li>支援搜尋、主類別、子類別、發佈與推廣篩選</li><li>顯示報名名額、已取消人數、退款筆數與排期狀態</li><li>可批量操作、重置條件及進階篩選</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台課程清單.png" alt="課程列表管理"></div>
+</div>
+<!-- S31 建立課程 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">課程管理</div><div class="rule o"></div><h2>建立課程</h2>
+    <div class="ep o">/manage/courses/create/</div>
+    <ul class="ft"><li>從模板開設新課程</li><li>設定上課日期範圍及時間</li><li>設定最大報名人數及截止日期</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台建立課程.png" alt="建立課程"></div>
+</div>
+<!-- S32 課程排期雙圖 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">課程管理</div><div class="rule o"></div><h2>課程排期設定</h2>
+    <div class="ep o">/manage/courses/edit/&lt;hash&gt;/</div>
+    <ul class="ft"><li>設定上課星期及時間</li><li>自動生成課堂排程</li><li>可手動調整個別課堂</li></ul>
+  </div>
+  <div class="ip two"><img src="NGOPPT/後台課程排期前.png" alt="排期前"><img src="NGOPPT/後台課程排期.png" alt="排期設定"></div>
+</div>
+<!-- S33 自動排班 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">課程管理</div><div class="rule o"></div><h2>自動排班生成</h2>
+    <div class="ep o">/manage/courses/edit/&lt;hash&gt;/</div>
+    <ul class="ft"><li>根據日期範圍及星期自動生成課堂</li><li>每堂課自動分配日期及時間</li><li>可手動調整個別課堂</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台自動排期.png" alt="自動排期"></div>
+</div>
+<!-- S34 課程狀態管理 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">課程管理</div><div class="rule o"></div><h2>課程狀態管理</h2>
+    <div class="ep o">/manage/courses/view/&lt;hash&gt;/</div>
+    <ul class="ft"><li>查看課程完整資訊</li><li>課程狀態切換（上架/下架/取消）</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台課程管理狀態1.png" alt="課程狀態"></div>
+</div>
+<!-- S35 報名學生名單 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">報名管理</div><div class="rule o"></div><h2>報名學生名單</h2>
+    <div class="ep o">/manage/courses/view/&lt;hash&gt;/</div>
+    <ul class="ft"><li>查看所有已報名學生</li><li>學生聯絡資料</li><li>報名狀態（成功 / 已取消）</li><li>取消報名功能</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台報名學生名單.png" alt="報名名單"></div>
+</div>
+<!-- S36 付款及退款 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">報名管理</div><div class="rule o"></div><h2>付款及退款管理</h2>
+    <div class="ep o">/manage/courses/view/&lt;hash&gt;/</div>
+    <div class="ep">/manage/courses/download_payment_receipt/&lt;hash&gt;/</div>
+    <div class="ep">/manage/courses/download_refund_receipt/&lt;hash&gt;/</div>
+    <ul class="ft"><li>查看所有付款記錄</li><li>發起退款處理</li><li>下載付款 / 退款收據 PDF</li></ul>
+  </div>
+  <div class="ip two"><img src="NGOPPT/後台課程付款紀錄.png" alt="付款記錄"><img src="NGOPPT/後台交易明細.png" alt="後台交易明細"></div>
+</div>
+<!-- S36b 個別退款 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">報名管理</div><div class="rule o"></div><h2>個別退款</h2>
+    <div class="ep o">/manage/courses/view/&lt;hash&gt;/</div>
+    <ul class="ft"><li>對個別學生發起退款</li><li>確認退款金額及原因</li><li>手動退款</li></ul>
+  </div>
+  <div class="ip two"><img src="NGOPPT/後台課程個別退款.png" alt="個別退款"><img src="NGOPPT/後台個別退款確定.png" alt="退款確定"></div>
+</div>
+<!-- S36c 取消報名申請 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">報名管理</div><div class="rule o"></div><h2>取消報名申請</h2>
+    <div class="ep o">/manage/courses/view/&lt;hash&gt;/</div>
+    <ul class="ft"><li>學生申請取消報名</li><li>職員確認取消並退款</li></ul>
+  </div>
+  <div class="ip two"><img src="NGOPPT/後台課程申請取消.png" alt="申請取消"><img src="NGOPPT/後台課程申請取消確定.png" alt="取消確定"></div>
+</div>
+
+<!-- S36d 交易記錄總覽 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">交易管理</div><div class="rule o"></div><h2>交易記錄</h2>
+    <div class="ep o">/manage/transactions/</div>
+    <div class="ep">/manage/transactions/export/csv/</div>
+    <div class="ep">/manage/transactions/export/pdf/</div>
+    <ul class="ft"><li>統計指定區間總收款總退款及淨收益</li><li>按交易類型方式主類別子類別篩選</li><li>支援 CSV 匯出及 PDF 報表</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台交易紀錄.png" alt="交易記錄"></div>
+</div>
+<!-- S36d 交易明細篩選1 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">交易管理</div><div class="rule o"></div><h2>交易明細篩選</h2>
+    <div class="ep o">/manage/transactions/</div>
+    <ul class="ft"><li>按操作、主類別、子類別篩選</li><li>按交易方式及交易類型篩選</li></ul>
+  </div>
+  <div class="ip" style="flex-direction:column">
+    <img src="NGOPPT/後台交易明細（操作）.png" alt="操作篩選" style="height:55%;object-fit:contain;border-bottom:1px solid var(--border)">
+    <div style="display:flex;height:45%">
+      <img src="NGOPPT/後台交易明細（主類別）.png" alt="主類別" style="width:50%;object-fit:contain;border-right:1px solid var(--border)">
+      <img src="NGOPPT/後台交易明細（子類別）.png" alt="子類別" style="width:50%;object-fit:contain">
+    </div>
+  </div>
+</div>
+<!-- S36e 交易方式與類型篩選 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">交易管理</div><div class="rule o"></div><h2>交易方式與類型篩選</h2>
+    <div class="ep o">/manage/transactions/</div>
+    <ul class="ft"><li>多維度篩選交易記錄</li><li>交易方式 / 交易類型</li></ul>
+  </div>
+  <div class="ip two"><img src="NGOPPT/後台交易明細（交易方式）.png" alt="交易方式"><img src="NGOPPT/後台交易明細(交易類型).png" alt="交易類型"></div>
+</div>
+<!-- S37 消息公告管理 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">內容管理</div><div class="rule o"></div><h2>消息公告管理</h2>
+    <div class="ep o">/manage/web_contents/list/</div>
+    <div class="ep o">/manage/web_contents/create/</div>
+    <div class="ep o">/manage/web_contents/edit/&lt;id&gt;</div>
+    <div class="ep o">/manage/web_contents/delete/&lt;id&gt;/</div>
+    <ul class="ft"><li>發佈機構消息及公告</li><li>編輯及刪除消息</li><li>前台首頁及消息頁自動顯示</li></ul>
+  </div>
+  <div class="ip two"><img src="NGOPPT/後台最新消息列表.png" alt="消息管理"><img src="NGOPPT/後台建立最新消息.png" alt="建立消息"></div>
+</div>
+<!-- S37a 學生清單 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">學生管理</div><div class="rule o"></div><h2>學生清單</h2>
+    <div class="ep o">/manage/students/list/</div>
+    <div class="ep o">/manage/students/create/</div>
+    <ul class="ft"><li>搜尋學生編號姓名及電話</li><li>按帳號狀態及 Email 驗證狀態篩選</li><li>快速檢視啟用及驗證標籤</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台學生清單.png" alt="學生清單"></div>
+</div>
+<!-- S37b 學生編輯 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">學生管理</div><div class="rule o"></div><h2>建立與編輯學生</h2>
+    <div class="ep o">/manage/students/create/</div>
+    <div class="ep o">/manage/students/edit/&lt;hash&gt;/</div>
+    <ul class="ft"><li>後台建立學生帳號與登入資料</li><li>編輯學生基本資料及緊急聯絡人</li><li>可管理啟用狀態與系統資料</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台學生編輯.png" alt="學生編輯"></div>
+</div>
+<!-- S37c 學生詳細 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">學生管理</div><div class="rule o"></div><h2>學生詳細資料</h2>
+    <div class="ep o">/manage/students/view/&lt;hash&gt;/</div>
+    <ul class="ft"><li>集中查看學生基本資料及系統狀態</li><li>列出學生報讀課程紀錄</li><li>同頁切換交易明細並統計收款退款</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台學生詳細.png" alt="學生詳細"></div>
+</div>
+
+<!-- S38 導師列表 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">導師管理</div><div class="rule o"></div><h2>導師列表</h2>
+    <div class="ep o">/manage/teachers/list/</div>
+    <div class="ep o">/manage/teachers/view/&lt;hash&gt;</div>
+    <ul class="ft"><li>查看所有已登記導師</li><li>支援搜尋教師編號與姓名</li><li>進入導師詳情或編輯資料</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台老師清單.png" alt="導師列表"></div>
+</div>
+<!-- S39 建立/編輯導師 -->
+<div class="slide">
+  <div class="tp"><div class="role s">職員</div><div class="lbl">導師管理</div><div class="rule o"></div><h2>建立與編輯導師</h2>
+    <div class="ep o">/manage/teachers/create/</div>
+    <div class="ep o">/manage/teachers/edit/&lt;hash&gt;</div>
+    <ul class="ft"><li>新增導師個人資料</li><li>編輯導師資料</li><li>導師資料與課程關聯</li></ul>
+  </div>
+  <div class="ip"><img src="NGOPPT/後台建立老師.png" alt="建立導師"></div>
+</div>
+<!-- S40 結語 -->
+<div class="slide ch">
+  <div class="clbl">系統總結</div><div class="rule"></div>
+  <h2>完整的課程管理生態系統</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;margin-top:2rem;max-width:960px;">
+    <div style="border-top:3px solid var(--blue);padding-top:1rem;text-align:left;">
+      <div style="font-size:1rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin-bottom:.5rem;">訪客體驗</div>
+      <p style="font-size:1rem;line-height:1.6;opacity:.7;">無需登入即可瀏覽所有課程資訊及消息公告。</p>
+    </div>
+    <div style="border-top:3px solid var(--blue);padding-top:1rem;text-align:left;">
+      <div style="font-size:1rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin-bottom:.5rem;">學生體驗</div>
+      <p style="font-size:1rem;line-height:1.6;opacity:.7;">從報名到付款全流程線上化，Email 通知貫穿全程，儀表板一目了然。</p>
+    </div>
+    <div style="border-top:3px solid var(--orange);padding-top:1rem;text-align:left;">
+      <div style="font-size:1rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.5rem;">職員效率</div>
+      <p style="font-size:1rem;line-height:1.6;opacity:.7;">集中式後台管理課程排期學生導師交易與收益分析，自動排班及報表匯出減少人手工作。</p>
+    </div>
+  </div>
+  <div style="margin-top:3rem;font-size:1rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.3;">NGO 課程管理系統 — 2026</div>
+</div>
+</div>
+<canvas id="grain"></canvas>
+<div id="pgbar"></div>
+
+<div id="lb"><img id="lb-img" src="" alt=""></div>
+<nav class="nav">
+  <span id="counter">1 / 40</span>
+  <button id="prev">‹</button>
+  <button id="next">›</button>
+</nav>
+<script>
+const deck=document.getElementById('deck'),slides=deck.querySelectorAll('.slide'),total=slides.length;
+const counter=document.getElementById('counter'),progress=document.getElementById('progress');
+let cur=0;
+function go(n){
+  cur=Math.max(0,Math.min(total-1,n));
+  deck.style.transform=`translateX(-${cur*100}vw)`;
+  counter.textContent=`${cur+1} / ${total}`;
+  progress.style.width=`${(cur+1)/total*100}%`;
+  slides.forEach((s,i)=>{s.classList.toggle('active',i===cur);});
+  updatePgBar();
+}
+document.getElementById('next').addEventListener('click',()=>go(cur+1));
+document.getElementById('prev').addEventListener('click',()=>go(cur-1));
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();go(cur+1);}if(e.key==='ArrowLeft'){e.preventDefault();go(cur-1);}if(e.key==='Escape')lb.classList.remove('on');});
+let sx=0;deck.addEventListener('touchstart',e=>sx=e.touches[0].clientX);
+deck.addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-sx;if(Math.abs(d)>50)go(d<0?cur+1:cur-1);});
+const lb=document.getElementById('lb'),lbImg=document.getElementById('lb-img');
+document.querySelectorAll('.ip img').forEach(img=>{img.addEventListener('click',()=>{lbImg.src=img.src;lb.classList.add('on');});});
+lb.addEventListener('click',()=>lb.classList.remove('on'));
+
+// Grain
+(()=>{const c=document.getElementById('grain'),ctx=c.getContext('2d');function resize(){c.width=window.innerWidth;c.height=window.innerHeight;}resize();window.addEventListener('resize',resize);function draw(){const img=ctx.createImageData(c.width,c.height);const d=img.data;for(let i=0;i<d.length;i+=4){const v=Math.random()*255|0;d[i]=d[i+1]=d[i+2]=v;d[i+3]=255;}ctx.putImageData(img,0,0);}setInterval(draw,80);})();
+
+// Number roll on S2
+function rollNum(el,target,dur=700){const start=performance.now();(function step(now){const p=Math.min((now-start)/dur,1);el.textContent=Math.round(p*target);if(p<1)requestAnimationFrame(step);})(start);}
+const statEls=document.querySelectorAll('.stat h3');
+const statVals=[65,3,12];
+const s2=document.querySelectorAll('.slide')[1];
+let s2done=false;
+new MutationObserver(()=>{if(s2.classList.contains('active')&&!s2done){s2done=true;statEls.forEach((el,i)=>rollNum(el,statVals[i]));}}).observe(s2,{attributeFilter:['class']});
+
+// Page indicator dots
+const pgbar=document.getElementById('pgbar');
+const dots=[];
+for(let i=0;i<total;i++){
+  const d=document.createElement('div');
+  d.className='pgdot';d.textContent=i+1;
+  d.onclick=(()=>{const n=i;return()=>go(n);})();
+  pgbar.appendChild(d);dots.push(d);
+}
+function updatePgBar(){
+  dots.forEach((d,i)=>d.classList.toggle('active',i===cur));
+  const active=pgbar.children[cur];
+  if(active)active.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+}
+
+// TOC + back buttons
+const tocSlide=document.getElementById('toc-slide');
+const tocList=document.getElementById('toc-list');
+let tocIdx=0;
+slides.forEach((s,i)=>{if(s===tocSlide)tocIdx=i;});
+slides.forEach((s,i)=>{
+  if(s===tocSlide)return;
+  const h2=s.querySelector('h2');
+  if(!h2)return;
+  const isCh=s.classList.contains('ch')||s.classList.contains('cover');
+  const lbl=s.querySelector('.lbl')?.textContent||'';
+  const entry=document.createElement('div');
+  entry.className='toc-entry'+(isCh?' ch-header':'');
+  entry.innerHTML=`<button onclick="go(${i})"><span class="toc-num">${isCh?'':''+i}</span>${h2.textContent.replace(/\n/g,' ')}</button>`;
+  tocList.appendChild(entry);
+  if(s===tocSlide||s.classList.contains('cover'))return;
+  const btn=document.createElement('button');
+  btn.className='back-btn';btn.textContent='☰ 目錄';
+  btn.onclick=()=>go(tocIdx);
+  s.style.position='relative';s.appendChild(btn);
+});
+
+go(0);
+</script>
+</body>
+</html>

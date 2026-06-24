@@ -1,0 +1,76 @@
+{% if messages %}
+  <div class="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-3 w-full max-w-sm m-0 px-4 pointer-events-none">
+    {% for message in messages %}
+      <div class="pointer-events-auto transform transition-all duration-500 ease-out translate-y-0 opacity-100" 
+           id="django-message-{{ forloop.counter }}">
+        
+        <div class="flex items-start justify-between p-4 rounded-lg border shadow-lg backdrop-blur-sm
+          {% if message.tags == 'error' or message.tags == 'danger' %}
+            bg-red-50/95 text-red-800 border-red-200
+          {% elif message.tags == 'success' %}
+            bg-green-50/95 text-green-800 border-green-200
+          {% elif message.tags == 'warning' %}
+            bg-amber-50/95 text-amber-800 border-amber-200
+          {% else %}
+            bg-blue-50/95 text-blue-800 border-blue-200
+          {% endif %}"
+          role="alert">
+          
+          <div class="flex items-start">
+            {% if message.tags == 'error' or message.tags == 'danger' %}
+              <svg class="w-5 h-5 mr-3 shrink-0 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+            {% elif message.tags == 'success' %}
+              <svg class="w-5 h-5 mr-3 shrink-0 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+            {% endif %}
+
+            <div class="text-sm">
+              <span class="font-semibold block mb-0.5">
+                {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+                  Error
+                {% else %}
+                  {{ message.tags | title }}
+                {% endif %}
+              </span>
+              <span class="text-gray-600 font-normal break-all">{{ message }}</span>
+            </div>
+          </div>
+
+          <button type="button" 
+                  onclick="fadeOutMessage('django-message-{{ forloop.counter }}')"
+                  class="ml-4 -mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex h-8 w-8 shrink-0 hover:bg-opacity-10 hover:bg-black focus:outline-none transition-colors
+                    {% if message.tags == 'error' or message.tags == 'danger' %} text-red-500 {% elif message.tags == 'success' %} text-green-500 {% else %} text-gray-500 {% endif %}">
+            <span class="sr-only">Close</span>
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <script>
+        setTimeout(() => {
+          fadeOutMessage('django-message-{{ forloop.counter }}');
+        }, 3000);
+      </script>
+    {% endfor %}
+  </div>
+
+  <script>
+    function fadeOutMessage(elementId) {
+      const el = document.getElementById(elementId);
+      if (el) {
+        // 修改：消失時改為「向上滑出 (translateY(-20px))」並變透明，置中看更順眼
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-20px)';
+        
+        setTimeout(() => {
+          el.style.height = '0';
+          el.style.padding = '0';
+          el.style.margin = '0';
+          el.style.overflow = 'hidden';
+          el.style.transition = 'all 0.3s ease';
+          
+          setTimeout(() => { el.remove(); }, 500);
+        }, 500);
+      }
+    }
+  </script>
+{% endif %}

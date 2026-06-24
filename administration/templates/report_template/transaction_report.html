@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>金流交易報表 (Transaction Report)</title>
+    <style>
+        /* 🎯 專為列印設計的頁面設定 (A4 橫向) */
+        @page {
+            size: A4 landscape;
+            margin: 15mm;
+            @bottom-center {
+                content: "第 " counter(page) " 頁，共 " counter(pages) " 頁";
+                font-size: 9pt;
+                color: #6b7280;
+            }
+        }
+        
+        body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 10pt; color: #1f2937; margin: 0; padding: 0; }
+        
+        /* 頁首區塊 */
+        .header { text-align: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #3b82f6; }
+        .header img { max-height: 55px; margin-bottom: 5px; }
+        .header h1 { margin: 5px 0; font-size: 16pt; color: #111827; letter-spacing: 1px; }
+        .header p { margin: 2px 0; font-size: 9pt; color: #6b7280; }
+
+        /* 條件與摘要區塊 */
+        .info-container { width: 100%; margin-bottom: 20px; border-collapse: collapse; }
+        .info-container td { vertical-align: top; }
+        
+        /* 條件清單 */
+        .filter-table { width: 100%; font-size: 9pt; line-height: 1.5; color: #4b5563; }
+        .filter-table td { padding-bottom: 3px; }
+        .filter-label { font-weight: bold; width: 70px; color: #374151; }
+
+        /* 三色總計卡片 */
+        .summary-table { width: 100%; border-collapse: collapse; text-align: center; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; }
+        .summary-table th { background-color: #f9fafb; padding: 8px; font-size: 9pt; border-bottom: 1px solid #e5e7eb; color: #6b7280; font-weight: normal; }
+        .summary-table td { padding: 12px 8px; font-size: 13pt; font-weight: bold; }
+        .text-green { color: #16a34a; }
+        .text-red { color: #dc2626; }
+        .text-blue { color: #2563eb; }
+
+        /* 交易明細資料表 */
+        .data-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+        .data-table th { background-color: #f3f4f6; padding: 8px 6px; text-align: left; border-bottom: 2px solid #d1d5db; font-weight: bold; color: #374151; }
+        .data-table td { padding: 8px 6px; border-bottom: 1px solid #e5e7eb; vertical-align: top; line-height: 1.4; }
+        
+        /* 小工具 CSS */
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .text-gray { color: #6b7280; }
+        .text-xs { font-size: 7.5pt; }
+        .font-bold { font-weight: bold; }
+        
+        .badge { padding: 2px 5px; border-radius: 3px; font-size: 7.5pt; font-weight: bold; border: 1px solid #d1d5db; background: #f9fafb; }
+        .badge-payment { color: #16a34a; background: #f0fdf4; border-color: #bbf7d0; }
+        .badge-refund { color: #dc2626; background: #fef2f2; border-color: #fecaca; }
+        .badge-cancel { color: #dc2626; border: 1px solid #fecaca; padding: 1px 3px; font-size: 7pt; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        {% if logo_url %}
+            <img src="{{ logo_url }}" alt="Center Logo">
+        {% endif %}
+        <h1>{{ obj_center.name|default:"系統" }} - 交易明細報表</h1>
+        <p>報表產生時間：{{ generate_time|date:"Y-m-d H:i" }}</p>
+    </div>
+
+    <table class="info-container">
+        <tr>
+            <td style="width: 45%;">
+                <table class="filter-table">
+                    <tr><td class="filter-label">統計區間：</td><td>{{ dict_input_data.date_from }} 至 {{ dict_input_data.date_to }}</td></tr>
+                    <tr>
+                        <td class="filter-label">篩選條件：</td>
+                        <td>
+                            {% if dict_input_data.TypeSelector %}交易類型[{{ dict_input_data.TypeSelector }}] {% endif %}
+                            {% if dict_input_data.MethodSelector %}收款/退款方式{{ dict_input_data.MethodSelector }}] {% endif %}
+                            {% if dict_input_data.MainCategorySelector or dict_input_data.SubCategorySelector %}類別已篩選 {% endif %}
+                            {% if dict_input_data.txtkeyword %}關鍵字: "{{ dict_input_data.txtkeyword }}"{% endif %}
+                            {% if not dict_input_data.TypeSelector and not dict_input_data.MethodSelector and not dict_input_data.MainCategorySelector and not dict_input_data.SubCategorySelector and not dict_input_data.txtkeyword %}
+                                (無額外條件)
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td style="width: 55%;">
+                <table class="summary-table">
+                    <tr>
+                        <th style="width: 33.3%;">總收款 (Payment)</th>
+                        <th style="width: 33.3%;">總退款 (Refund)</th>
+                        <th style="width: 33.4%;">區間淨收益 (Net Income)</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="text-green">${{ total_payment|floatformat:2 }}</div>
+                            <div class="text-gray" style="font-size: 8.5pt; font-weight: normal; margin-top: 4px;">共 {{ count_payment }} 筆</div>
+                        </td>
+                        <td>
+                            <div class="text-red">-${{ total_refund|floatformat:2 }}</div>
+                            <div class="text-gray" style="font-size: 8.5pt; font-weight: normal; margin-top: 4px;">共 {{ count_refund }} 筆</div>
+                        </td>
+                        <td>
+                            <div class="text-blue">${{ net_income|floatformat:2 }}</div>
+                            <div class="text-gray" style="font-size: 8.5pt; font-weight: normal; margin-top: 4px; color: #2563eb;" title="總交易筆數 = 收款 + 退款">
+                                總計 {{ count_payment|add:count_refund }} 筆交易
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 12%;">交易時間</th>
+                <th style="width: 14%;">學生姓名 / 學號</th>
+                <th style="width: 10%;">類型</th>
+                <th style="width: 12%;">金額 ($)</th>
+                <th style="width: 23%;">對應課程</th>
+                <th style="width: 10%;">收款/退款方式</th>
+                <th style="width: 19%;">參考單號</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dict_trans in list_trans %}
+            <tr>
+                <td>
+                    <div class="font-bold">{{ dict_trans.trans_date|date:"Y-m-d" }}</div>
+                    <div class="text-gray text-xs">{{ dict_trans.trans_date|date:"H:i" }}</div>
+                </td>
+                
+                <td>
+                    <div class="font-bold">
+                        {{ dict_trans.student_cn|default:dict_trans.student_en }}
+                        {% if dict_trans.signup_status == 'cancel' %}
+                            <span class="badge badge-cancel">已取消</span>
+                        {% endif %}
+                    </div>
+                    <div class="text-gray text-xs">{{ dict_trans.student_no }}</div>
+                </td>
+                
+                <td>
+                    {% if dict_trans.record_type == 'payment' %}
+                        <span class="badge badge-payment">收款</span>
+                    {% else %}
+                        <span class="badge badge-refund">退款</span>
+                    {% endif %}
+                </td>
+                
+                <td>
+                    {% if dict_trans.record_type == 'payment' %}
+                        <div class="font-bold text-green">${{ dict_trans.trans_amount|floatformat:2 }}</div>
+                    {% else %}
+                        <div class="font-bold text-red">-${{ dict_trans.trans_amount|floatformat:2 }}</div>
+                    {% endif %}
+                </td>
+                
+                <td>
+                    <div class="text-gray text-xs">{% if dict_trans.main_category_short %}[{{ dict_trans.main_category_short }}] {{ dict_trans.sub_category_name }}{% endif %}</div>
+                    <div class="font-bold">{{ dict_trans.course_name }}</div>
+                    <div class="text-gray text-xs">{{ dict_trans.course_code }}</div>
+                </td>
+                
+                <td><span class="badge">{{ dict_trans.trans_method|upper }}</span></td>
+                
+                <td style="word-break: break-all;">
+                    {% if dict_trans.trans_ref %}<div class="text-gray text-xs">Ref: <span style="color:#111827;">{{ dict_trans.trans_ref }}</span></div>{% endif %}
+                    {% if dict_trans.online_payment_session %}<div class="text-gray text-xs">Session: <span style="color:#111827;">{{ dict_trans.online_payment_session }}</span></div>{% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center" style="padding: 30px; color: #6b7280;">
+                    所選條件內沒有任何交易紀錄
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+{% extends "base.html" %} 
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<!-- 1.2 navbar background -->
+<div class="relative h-[180px] bg-cover bg-center" 
+  style="background-image: url('{% static "img/bg/page.jpg" %}');">
+</div>
+
+<!-- 2. Content -->
+<section class="mt-8 bg-white flex flex-col items-center justify-center gap-10 px-6">
+    <!-- 藍色哭臉 -->
+    <div class="w-24 h-24 rounded-full flex items-center justify-center">
+        <i class="fa-solid fa-face-sad-tear text-[6rem]" style="color: #607cf7;"></i>
+    </div>
+    <h2 class="text-2xl text-gray-600 font-medium">仍未完成付款流程...</h2>
+
+    <!-- 返回按鈕 -->
+    <a href="{% url "front_web:course" course_id %}" class="py-4 px-14 rounded-full bg-[#555555] text-white text-xl text-center font-medium">返回課程</a>
+</section>
+{% endblock %}

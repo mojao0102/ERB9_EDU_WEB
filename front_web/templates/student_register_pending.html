@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="relative h-[120px] bg-cover bg-center" 
+    style="background-image: url('{% static "img/banner/news_banner.png" %}');">
+</div>
+
+<section class="py-16 px-4 bg-gray-50 min-h-[calc(100vh-120px)] flex items-center">
+    <div class="max-w-xl mx-auto w-full bg-white shadow-xl rounded-2xl p-8 md:p-12 border border-gray-100 text-center">
+    
+    {% include "partials/_alert.html" %} <div class="w-24 h-24 rounded-full bg-[#f0f9ff] flex items-center justify-center mx-auto mb-6">
+        <i class="fa-solid fa-envelope-circle-check text-[4.5rem] text-[#70c1d6]"></i>
+    </div>
+
+    <h1 class="text-3xl font-bold text-gray-900 mb-4">只差最後一步了！</h1>
+    <p class="text-gray-500 text-lg mb-6">
+        我們已經將帳號驗證連結寄送至您的電子信箱：
+    </p>
+
+    <div class="bg-[#f8fafc] text-xl font-medium text-[#2b6cb0] py-4 px-6 rounded-xl border border-gray-100 text-center break-all mb-6">
+        <i class="fa-solid fa-envelope mr-2 opacity-75"></i>{{ email }}
+    </div>
+
+    <p class="text-gray-500 text-base leading-relaxed mb-8">
+        請至您的收件匣（或檢查垃圾郵件區）查看該郵件，點擊郵件中的<strong>「驗證電子郵件地址」</strong>按鈕以啟用帳號。開通成功後，系統將直接為您登入並引導至您的課堂。
+    </p>
+
+    <div class="border-t border-gray-100 my-6"></div>
+
+    <div class="text-left bg-orange-50/50 border border-orange-100 p-5 rounded-xl">
+        <h4 class="font-bold text-gray-800 text-lg mb-2">
+            <i class="fa-solid fa-circle-question text-orange-500 mr-1"></i> 收不到驗證信？
+        </h4>
+        <p class="text-gray-600 text-sm mb-4 leading-relaxed">
+            請先確認垃圾郵件匣。若不小心填錯了 Email 地址，或是需要系統幫您重新寄送一次，請點擊下方按鈕更新：
+        </p>
+        
+        <a href="{% url 'front_web:student_change_email_and_resend' %}" 
+            class="block w-full text-center py-3 rounded-full bg-[#70c1d6] hover:bg-[#5db0c4] text-white font-medium text-lg shadow-sm transition-all duration-200">
+            <i class="fa-solid fa-pen-to-square mr-1"></i> 修改 Email 並重新發送驗證信
+        </a>
+    </div>
+
+    <div class="mt-8">
+        <a href="{% url 'front_web:home' %}" class="text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-2">
+            <i class="fa-solid fa-house-user"></i> 返回網站首頁
+        </a>
+    </div>
+
+    </div>
+</section>
+{% endblock %}

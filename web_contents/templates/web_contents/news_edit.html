@@ -1,0 +1,220 @@
+{% extends 'staff_base.html' %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<main class="md:ml-[200px] flex-1 p-8 pt-16 md:pt-8 bg-gray-100 min-h-screen">
+    <div class="mb-6">
+        <h1 class="text-xl font-bold text-gray-800">
+            {% if action == 'create' %}新增最新消息 (Create NEWS){% else %}編輯最新消息 (Edit NEWS){% endif %}
+        </h1>
+    </div>
+
+    {% include "partials/_alert.html" %} 
+
+    <form method="POST" enctype="multipart/form-data" class="max-w-5xl space-y-6">
+        {% csrf_token %}
+
+        <!-- 基本資訊卡片 -->
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+            <h2 class="text-lg font-bold text-gray-700 mb-5 pb-2 border-b">
+                <i class="fa-solid fa-layer-group text-blue-500 mr-2"></i>基本資訊
+            </h2>
+
+            <!-- 消息標題 -->
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-2">消息標題 <span class="text-red-500">*</span></label>
+                <input
+                    type="text"
+                    name="title"
+                    value="{{ news.title|default:'' }}"
+                    class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-700 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
+                    required
+                >
+            </div>
+
+            <!-- 內文描述 -->
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-2">消息內文</label>
+                <textarea
+                    name="desc"
+                    rows="6"
+                    class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-700 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
+                >{{ news.desc|default:'' }}</textarea>
+            </div>
+
+            <!-- 首頁橫幅圖 -->
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-2">首頁橫幅圖 (Hot Banner)</label>
+                <div class="flex items-center gap-3">
+                    <input type="file" name="list_photo" id="bannerUpload" accept="image/*" class="hidden">
+                    <button type="button" onclick="document.getElementById('bannerUpload').click()" 
+                        class="border border-gray-300 bg-white rounded-lg px-5 py-2 text-gray-700 hover:bg-gray-50 transition shadow-sm font-medium flex items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> 選擇圖片
+                    </button>
+                    <span id="bannerFileName" class="text-sm text-gray-500"></span>
+                </div>
+                {% if news.list_photo and news.list_photo.url %}
+                <div class="mt-4 bg-gray-50 p-3 rounded-lg border border-gray-200 inline-block">
+                    <p class="text-xs text-gray-500 mb-2">目前已上傳圖片：</p>
+                    <img src="{{ news.list_photo.url }}" alt="橫幅圖" class="h-28 w-auto object-cover rounded shadow-sm">
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 內容圖片卡片 -->
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+            <h2 class="text-lg font-bold text-gray-700 mb-5 pb-2 border-b">
+                <i class="fa-solid fa-image text-cyan-500 mr-2"></i>內文圖片
+            </h2>
+
+            <!-- 內文圖片1 -->
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-2">內文圖片一</label>
+                <div class="flex items-center gap-3">
+                    <input type="file" name="photo_1" id="photo1Upload" accept="image/*" class="hidden">
+                    <button type="button" onclick="document.getElementById('photo1Upload').click()" 
+                        class="border border-gray-300 bg-white rounded-lg px-5 py-2 text-gray-700 hover:bg-gray-50 transition shadow-sm font-medium flex items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> 選擇圖片
+                    </button>
+                    <span id="photo1FileName" class="text-sm text-gray-500"></span>
+                </div>
+                {% if news.photo_1 and news.photo_1.url %}
+                <div class="mt-4 bg-gray-50 p-3 rounded-lg border border-gray-200 inline-block">
+                    <p class="text-xs text-gray-500 mb-2">目前已上傳圖片：</p>
+                    <img src="{{ news.photo_1.url }}" alt="內文圖片1" class="h-28 w-auto object-cover rounded shadow-sm">
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 內文圖片2 -->
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-2">內文圖片二</label>
+                <div class="flex items-center gap-3">
+                    <input type="file" name="photo_2" id="photo2Upload" accept="image/*" class="hidden">
+                    <button type="button" onclick="document.getElementById('photo2Upload').click()" 
+                        class="border border-gray-300 bg-white rounded-lg px-5 py-2 text-gray-700 hover:bg-gray-50 transition shadow-sm font-medium flex items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> 選擇圖片
+                    </button>
+                    <span id="photo2FileName" class="text-sm text-gray-500"></span>
+                </div>
+                {% if news.photo_2 and news.photo_2.url %}
+                <div class="mt-4 bg-gray-50 p-3 rounded-lg border border-gray-200 inline-block">
+                    <p class="text-xs text-gray-500 mb-2">目前已上傳圖片：</p>
+                    <img src="{{ news.photo_2.url }}" alt="內文圖片2" class="h-28 w-auto object-cover rounded shadow-sm">
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 內文圖片3 -->
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-2">內文圖片三</label>
+                <div class="flex items-center gap-3">
+                    <input type="file" name="photo_3" id="photo3Upload" accept="image/*" class="hidden">
+                    <button type="button" onclick="document.getElementById('photo3Upload').click()" 
+                        class="border border-gray-300 bg-white rounded-lg px-5 py-2 text-gray-700 hover:bg-gray-50 transition shadow-sm font-medium flex items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> 選擇圖片
+                    </button>
+                    <span id="photo3FileName" class="text-sm text-gray-500"></span>
+                </div>
+                {% if news.photo_3 and news.photo_3.url %}
+                <div class="mt-4 bg-gray-50 p-3 rounded-lg border border-gray-200 inline-block">
+                    <p class="text-xs text-gray-500 mb-2">目前已上傳圖片：</p>
+                    <img src="{{ news.photo_3.url }}" alt="內文圖片3" class="h-28 w-auto object-cover rounded shadow-sm">
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 發布時間與系統設定 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- 時程設定卡片 -->
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <h2 class="text-lg font-bold text-gray-700 mb-5 pb-2 border-b">
+                    <i class="fa-regular fa-calendar-check text-green-500 mr-2"></i>時程設定
+                </h2>
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">發布時間 <span class="text-red-500">*</span></label>
+                    <input
+                        type="datetime-local"
+                        name="publish_date"
+                        value="{{ news.publish_date|date:'Y-m-d\TH:i' }}"
+                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-700 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
+                        required
+                    >
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">下架截止時間</label>
+                    <input
+                        type="datetime-local"
+                        name="expiry_date"
+                        value="{{ news.expiry_date|date:'Y-m-d\TH:i' }}"
+                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-700 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
+                    >
+                </div>
+            </div>
+
+            <!-- 發布開關卡片 -->
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm h-fit">
+                <h2 class="text-lg font-bold text-gray-700 mb-4 pb-2 border-b">
+                    <i class="fa-solid fa-sliders text-purple-500 mr-2"></i>系統設定
+                </h2>
+                <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition">
+                    <div class="flex-1">
+                        <h3 class="text-sm font-bold text-gray-800">前台發布</h3>
+                        <p class="text-xs text-gray-500 mt-1">開啟後消息將顯示於前台頁面。</p>
+                    </div>
+                    <input
+                        type="checkbox"
+                        name="is_publish"
+                        {% if news.is_publish %}checked{% endif %}
+                        class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer ml-4"
+                    >
+                </label>
+            </div>
+        </div>
+
+        <!-- 底部操作按鈕 -->
+        <div class="flex flex-wrap items-center gap-3 pt-6 border-t border-gray-200">
+            <button type="submit" class="bg-blue-500 text-white px-8 py-2.5 rounded-lg hover:bg-blue-600 font-medium transition shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-floppy-disk"></i>
+                {% if action == 'create' %}建立消息{% else %}儲存編輯{% endif %}
+            </button>
+
+            <a href="{% url 'web_contents:news_list' %}"
+                class="bg-white border border-gray-300 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-50 font-medium transition shadow-sm flex items-center gap-2">
+                返回列表
+            </a>
+
+            {% if action == 'edit' %}
+            <a href="{% url 'web_contents:news_delete' news.hash_id %}" onclick="return confirm('確定要刪除此條消息？此操作無法復原。')" class="ml-auto">
+                <button type="button" class="bg-gray-500 text-white px-6 py-2.5 rounded-lg hover:bg-gray-600 font-medium transition shadow-sm flex items-center gap-2">
+                    <i class="fa-regular fa-trash-can"></i> 刪除消息
+                </button>
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</main>
+
+<script>
+// 上傳檔名顯示
+document.getElementById('bannerUpload').addEventListener('change', function() {
+    const fileName = this.files[0] ? this.files[0].name : '';
+    document.getElementById('bannerFileName').textContent = fileName;
+});
+document.getElementById('photo1Upload').addEventListener('change', function() {
+    const fileName = this.files[0] ? this.files[0].name : '';
+    document.getElementById('photo1FileName').textContent = fileName;
+});
+document.getElementById('photo2Upload').addEventListener('change', function() {
+    const fileName = this.files[0] ? this.files[0].name : '';
+    document.getElementById('photo2FileName').textContent = fileName;
+});
+document.getElementById('photo3Upload').addEventListener('change', function() {
+    const fileName = this.files[0] ? this.files[0].name : '';
+    document.getElementById('photo3FileName').textContent = fileName;
+});
+</script>
+{% endblock %}

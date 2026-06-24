@@ -1,0 +1,244 @@
+{% extends 'staff_base.html' %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<main class="md:ml-[200px] flex-1 p-8 pt-16 md:pt-8 bg-gray-50 min-h-screen">
+    {% include "partials/_alert.html" %} 
+
+    <div class="flex justify-between items-end mb-6">
+        <h1 class="text-xl font-bold text-gray-800 flex items-center">
+            <i class="fa-solid fa-table-columns text-blue-500 mr-4"></i> 課程範本管理
+        </h1>
+    </div>
+
+    <form id="templateForm" method="GET" action="{% url 'courses:coursetemp_list' %}" class="w-full">
+        {% csrf_token %}
+        <button type="submit" class="hidden" aria-hidden="true"></button>
+        <!-- 排序隱藏欄位，與Course.html一致 -->
+        <input type="hidden" name="sort_by" id="sort_by_input" value="{{ input_data.sort_by }}">
+        <input type="hidden" name="sort_dir" id="sort_dir_input" value="{{ input_data.sort_dir|default:'asc' }}">
+
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm mb-3">
+            <div class="flex flex-wrap items-center gap-3 text-sm">
+
+                <a href="{% url 'courses:coursetemp_create' %}" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition flex items-center gap-2 shadow-sm font-medium">
+                    <i class="fa-solid fa-plus"></i> 新增課程範本
+                </a> 
+
+                <div class="relative flex-grow max-w-[460px]">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" name="keyword" value="{{ keyword }}" placeholder="搜尋範本名稱..." 
+                    class="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition">
+                </div>
+
+                <select name="category" class="border border-gray-300 py-2 px-3 rounded-lg hover:bg-gray-50 bg-white focus:outline-none focus:border-blue-400 cursor-pointer max-w-[180px] transition text-gray-700" onchange="submitGetForm()">
+                    <option value=""{% if selected_category == '' %}selected{% endif %}>-- 子類別 --</option>
+                    {% for cat in sub_categories %}
+                        <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>[{{ cat.main_category.short_name }}] {{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <button onclick="submitGetForm()" class="border border-gray-300 py-2 px-4 rounded hover:bg-gray-50 transition text-gray-600 font-medium">
+                    <i class="fa-solid fa-arrows-rotate mr-1"></i> 重整
+                </button>
+
+                <button type="button" onclick="clearAllFilters()" class="border border-red-200 bg-red-50 py-2 px-4 rounded hover:bg-red-100 transition flex items-center gap-2 text-red-600 font-medium">
+                    <i class="fa-solid fa-xmark"></i> 清除條件
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex-1">
+            <div class="overflow-x-auto">
+                <table class="table-auto w-full border-collapse">
+                    <thead class="bg-white">
+                        <tr class="border-b border-gray-200">
+                            <th class="hidden md:table-cell w-[5%] py-3 px-4 text-left"></th>
+                            
+                            <th class="hidden md:table-cell w-[20%] py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('sub_category__name')">
+                                類別
+                                {% if input_data.sort_by == 'sub_category__name' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-a-z{% else %}fa-arrow-down-z-a{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="w-[75%] md:w-[38%] py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('name')">
+                                範本名稱
+                                {% if input_data.sort_by == 'name' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-a-z{% else %}fa-arrow-down-z-a{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="hidden md:table-cell w-[13%] py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('course_fee')">
+                                課程費用
+                                {% if input_data.sort_by == 'course_fee' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-1-9{% else %}fa-arrow-down-9-1{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="hidden md:table-cell w-[15%] py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('total_lessons')">
+                                總堂數
+                                {% if input_data.sort_by == 'total_lessons' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-1-9{% else %}fa-arrow-down-9-1{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="hidden md:table-cell w-[15%] py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('total_hours')">
+                                總時長
+                                {% if input_data.sort_by == 'total_hours' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-1-9{% else %}fa-arrow-down-9-1{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="w-[18%] md:w-[5%] py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for tmpl in templates %}
+                        <tr class="hover:bg-gray-50 transition-colors text-sm text-gray-700">
+                            <td class="hidden md:table-cell py-2.5 px-4 align-top">
+                                <input type="checkbox" class="row-check w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300 cursor-pointer">
+                            </td>
+                            <td class="hidden md:table-cell py-2.5 px-4 align-top">
+                                <span class="text-xs text-gray-500">[{{ tmpl.sub_category.main_category.short_name }}]</span><br>
+                                <span class="font-medium">{{ tmpl.sub_category.name }}</span>
+                            </td>
+                            <td class="py-2.5 px-4 align-top font-medium text-gray-800">
+                                <a href="{% url "courses:coursetemp_edit" tmpl.hash_id %}" class="text-blue-700 hover:underline">
+                                    {{ tmpl.name }}
+                                </a>
+                            </td>
+                            <td class="hidden md:table-cell py-2.5 px-4 align-top text-gray-500">${{ tmpl.course_fee }}</td>
+                            <td class="hidden md:table-cell py-2.5 px-4 align-top">{{ tmpl.total_lessons|floatformat:0 }}</td>
+                            <td class="hidden md:table-cell py-2.5 px-4 align-top text-gray-500">{{ tmpl.total_hours }} 小時</td>
+                            
+                            <td class="py-2.5 px-4 align-top text-right">
+                                <button type="button" class="more-btn text-gray-400 text-lg hover:text-gray-700 transition" data-id="{{ tmpl.hash_id }}">
+                                    <div class="px-2 py-1">
+                                        <i class="fa-solid fa-ellipsis-v"></i>
+                                    </div>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-12 text-gray-400">
+                                <i class="fa-solid fa-folder-open text-4xl mb-3 text-gray-200 block"></i>
+                                目前沒有找到符合條件的課程範本
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </form> 
+    
+    <!-- 全域更多操作選單 -->
+    <div id="globalMoreMenu" class="hidden fixed z-[999999] bg-white border border-gray-200 shadow-xl rounded-lg min-w-[140px] overflow-hidden">
+        <a id='menuApply' href="#" class="py-2.5 px-4 hover:bg-blue-50 hover:text-gray-600 transition cursor-pointer flex items-center gap-3 text-sm text-gray-700">
+            <i class="fa-solid fa-wand-magic-sparkles text-green-500"></i> 從此範本建立課程
+        </a>
+        <a id="menuEdit" href="#" class="py-2.5 px-4 hover:bg-blue-50 hover:text-blue-600 transition cursor-pointer flex items-center gap-3 text-sm text-gray-700">
+            <i class="fa-solid fa-pen-to-square text-blue-500"></i> 編輯範本
+        </a>     
+        <div id="menuDelete" class="py-2.5 px-4 hover:bg-red-50 hover:text-red-600 transition cursor-pointer flex items-center gap-3 text-sm text-red-500 border-t border-gray-100">
+            <i class="fa-solid fa-trash"></i> 刪除範本
+        </div>
+    </div>
+
+    <!-- 刪除專用隱藏表單 -->
+    <form id="deleteForm" method="post" action="" class="hidden">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete">
+    </form>
+</main>
+
+<script>
+// 共用提交函數（攜帶排序參數）
+function submitGetForm() {
+    const form = document.getElementById('templateForm');
+    const csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (csrfInput) {
+        csrfInput.remove();
+    }
+    form.submit();
+};
+
+// 清除篩選同時重置排序
+function clearAllFilters() {
+    const form = document.getElementById('templateForm');
+    // 重置排序
+    document.getElementById('sort_by_input').value = '';
+    document.getElementById('sort_dir_input').value = 'asc';
+    // 清空搜尋框
+    const keywordInput = form.querySelector('input[name="q"]');
+    if (keywordInput) keywordInput.value = '';
+    // 重置下拉選單
+    const selectEl = form.querySelector(`select[name="category"]`);
+    if (selectEl) selectEl.selectedIndex = 0;
+    submitGetForm();
+};
+
+// 排序切換邏輯，完全與Course.html一致
+function handleSort(columnName) {
+    const sortByInput = document.getElementById('sort_by_input');
+    const sortDirInput = document.getElementById('sort_dir_input');
+
+    if (sortByInput.value === columnName) {
+        sortDirInput.value = sortDirInput.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortByInput.value = columnName;
+        sortDirInput.value = 'asc';
+    }
+    submitGetForm();
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const globalMoreMenu = document.getElementById('globalMoreMenu');
+
+    document.querySelectorAll('.more-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const rect = btn.getBoundingClientRect();
+            globalMoreMenu.classList.remove('hidden');
+            const menuH = globalMoreMenu.offsetHeight;
+            const top = rect.bottom + 5 + menuH > window.innerHeight 
+                        ? rect.top - menuH - 5 
+                        : rect.bottom + 5;
+            globalMoreMenu.style.left = (rect.left - 140) + 'px';
+            globalMoreMenu.style.top = top + 'px';
+            const id = btn.dataset.id;
+            document.getElementById('menuApply').href = `{% url 'courses:course_create' %}?template_id=${id}`;
+            document.getElementById('menuEdit').href = `/manage/courses/template/edit/${id}/`;
+            document.getElementById('deleteForm').action = `/manage/courses/template/edit/${id}/`;
+        });
+    });
+
+    // 點空白處關閉選單
+    document.addEventListener('click', () => {
+        globalMoreMenu.classList.add('hidden');
+    });
+    // 滾動關閉選單
+    window.addEventListener('scroll', () => globalMoreMenu.classList.add('hidden'), true);
+
+    // 刪除確認彈窗
+    document.getElementById('menuDelete').addEventListener('click', () => {
+        if (confirm('確定要刪除此課程範本？此操作無法復原。')) {
+            document.getElementById('deleteForm').submit();
+        }
+    });
+});
+</script>
+{% endblock %}

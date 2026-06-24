@@ -1,0 +1,51 @@
+{% extends "base.html" %} 
+{% load static %}
+{% load humanize %}
+{% block content %}
+<div class="relative h-[180px] bg-cover bg-center" 
+    style="background-image: url('{% static "img/bg/page.jpg" %}');">
+</div>
+
+<section class="mt-8 mb-16 bg-white flex flex-col items-center justify-center gap-8 px-6">
+    
+    <div class="flex flex-col items-center gap-4">
+        <div class="w-24 h-24 rounded-full flex items-center justify-center">
+            <i class="fa-solid fa-face-smile-wink text-[6rem]" style="color: rgb(255, 111, 0);"></i>
+        </div>
+        <h2 class="text-3xl text-gray-700 font-bold tracking-wide">成功報讀！</h2>
+        <p class="text-gray-500">系統已將報名確認信與收據寄至您的信箱</p>
+    </div>
+
+    <div class="w-full max-w-md bg-gray-50 rounded-2xl p-6 shadow-sm border border-gray-200 flex flex-col gap-4 text-gray-700">
+        <div class="flex justify-between items-center border-b border-gray-200 pb-3">
+            <span class="text-gray-500 font-medium">報讀課程</span>
+            <span class="font-bold text-right text-gray-800">{{ course_name }}<br><span class="text-sm text-gray-500 font-normal">({{ course_code }})</span></span>
+        </div>
+        
+        <div class="flex justify-between items-center border-b border-gray-200 pb-3">
+            <span class="text-gray-500 font-medium">學生姓名</span>
+            <span class="font-medium">{{ student_name }} ({{ student_no }})</span>
+        </div>
+        
+        <div class="flex justify-between items-center border-b border-gray-200 pb-3">
+            <span class="text-gray-500 font-medium">交易單號</span>
+            <span class="font-mono text-sm text-gray-600">{{ payment_ref }}</span>
+        </div>
+
+        <div class="flex justify-between items-center border-b border-gray-200 pb-3">
+            <span class="text-gray-500 font-medium">付款時間</span>
+            <span class="font-medium">{{ payment_date|date:"Y-m-d H:i" }}</span>
+        </div>
+
+        <div class="flex justify-between items-center pt-1">
+            <span class="text-gray-600 font-bold text-lg">實付金額</span>
+            <span class="font-bold text-2xl text-[#27ae60]">${{ amount }}</span>
+        </div>
+    </div>
+
+    <div class="flex flex-col gap-4 w-full max-w-sm mt-2">
+        <a href="{% url 'front_web:course_list' course_list_id %}" class="py-4 rounded-full bg-[#b4d26e] hover:bg-[#a3c25b] transition-colors text-white text-xl text-center font-medium shadow-md">繼續瀏覽課程</a>
+        <a href="{% url 'front_web:student_dashboard' %}" class="py-4 rounded-full bg-[#6986f5] hover:bg-[#5875e5] transition-colors text-white text-xl text-center font-medium shadow-md">查看我的課程</a>
+    </div>
+</section>
+{% endblock %}

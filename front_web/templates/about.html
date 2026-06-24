@@ -1,0 +1,66 @@
+{% extends "base.html" %} 
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<!-- 1.2 background -->
+<div class="relative h-[200px] bg-cover bg-center" 
+    style="background-image: url('{% static "img/banner/banner.jpg" %}');">
+</div>
+
+<!-- 2. Page Content -->
+<div class="relative z-10 flex flex-col items-center px-4 py-16">
+    <div class="w-full max-w-4xl space-y-12">
+
+    {% for center in list_center %}  
+    <!-- 中心介紹 -->
+    <section class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-8">
+        <h2 class="text-3xl font-bold text-center mb-6">中心介紹</h2>
+        <div class="text-base leading-relaxed space-y-4">
+        <p>{{center.intro | linebreaks}}</p>
+        </div>
+    </section>
+
+    <!-- 聯絡我們 -->
+    <section class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-8">
+        <h1 class="text-3xl font-bold text-center mb-6">聯絡我們</h1>
+            <div class="text-base leading-relaxed space-y-3 mb-6">
+            <p class="font-bold">{{center.name}}</p>
+            <p>地址：{{center.addr}}</p>
+            <p>電話：{{center.phone}}</p>
+            <p>傳真：{{center.fax}}</p>
+            <p>電郵：{{center.email}}</p>
+            <p class="mt-4">中心位置：{{center.addr_desc}}</p>
+            </div>
+            <!-- Google Map -->
+            <iframe src="{{center.map_url}}" 
+            width="600" 
+            height="450" 
+            style="border:0;" 
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>      
+    </section>
+    {% endfor %}
+
+    <!-- 惡劣天氣安排 -->
+    <section class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-8">
+        <h2 class="text-3xl font-bold text-center mb-6">惡劣天氣安排</h2>
+        <div class="text-base leading-relaxed space-y-3">
+<p>如天文台於上課前 3 小時或以內發出 8 號或以上颱風信號，所有課程及活動將會暫停。</p>
+
+<p>若於活動期間預告或懸掛 8 號或以上颱風信號，進行中的課程及活動將於 1 小時內中止。</p>
+
+<p>若懸掛紅色或黑色暴雨警告信號或 3 號颱風信號，進行中的活動將繼續進行，直至活動完成。</p>
+
+<p>當天文台除下 8 號颱風或黑色暴雨警告信號後，所有課程及活動將於 2 小時後陸續恢復進行。</p>
+
+<p>若於原定活動/服務時間結束前 3 小時內，天文台才除下 8 號颱風信號或黑色暴雨警告，當日將全日停止活動。</p>
+
+<p>凡因惡劣天氣而暫停之活動，將另行通知有關改期或取消之安排。如參加者不能出席改期的活動，恕不另行安排補堂，而有關款項恕不退還。</p>
+        </div>
+    </section>
+    </div>
+</div>
+{% endblock %}

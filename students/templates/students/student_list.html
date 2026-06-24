@@ -1,0 +1,336 @@
+{% extends "staff_base.html" %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<main class="md:ml-[200px] flex-1 p-8 pt-16 md:pt-8 bg-gray-50 min-h-screen">
+    {% include "partials/_alert.html" %} 
+
+    <div class="flex justify-between items-end mb-6">
+        <h1 class="text-xl font-bold text-gray-800 flex items-center">
+            <i class="fa-solid fa-users text-blue-500 mr-4"></i> 學生管理
+        </h1>
+    </div>
+
+    <form id="studentForm" method="GET" action="{% url 'students:student_list' %}" class="w-full">
+        <button type="submit" class="hidden" aria-hidden="true"></button>
+        <!-- 排序隱藏參數 -->
+        <input type="hidden" name="sort_by" id="sort_by_input" value="{{ input_data.sort_by }}">
+        <input type="hidden" name="sort_dir" id="sort_dir_input" value="{{ input_data.sort_dir|default:'asc' }}">
+
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm mb-3">
+            <div class="flex flex-wrap items-center gap-3 text-sm">
+
+                <a href="{% url 'students:student_create' %}" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition flex items-center gap-2 shadow-sm font-medium">
+                    <i class="fa-solid fa-plus"></i> 新增學生
+                </a> 
+
+                <div class="relative flex-grow max-w-[360px]">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" name="txtkeyword" value="{{input_data.txtkeyword}}" placeholder="搜尋學生編號、姓名、電話..." 
+                    class="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition">
+                </div>
+
+                <select name="filter_active" onchange="submitGetForm()" class="border border-gray-300 py-2 px-3 rounded-lg focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition text-gray-600 cursor-pointer">
+                    <option value="">所有帳號狀態</option>
+                    <option value="1" {% if input_data.filter_active == '1' %}selected{% endif %}>啟用中</option>
+                    <option value="0" {% if input_data.filter_active == '0' %}selected{% endif %}>已停用</option>
+                </select>
+
+                <select name="filter_email" onchange="submitGetForm()" class="border border-gray-300 py-2 px-3 rounded-lg focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition text-gray-600 cursor-pointer">
+                    <option value="">所有 Email 狀態</option>
+                    <option value="1" {% if input_data.filter_email == '1' %}selected{% endif %}>Email 已驗證</option>
+                    <option value="0" {% if input_data.filter_email == '0' %}selected{% endif %}>Email 未驗證</option>
+                </select>
+
+                <button type="button" onclick="clearAllFilters()" class="border border-red-200 bg-red-50 py-2 px-4 rounded hover:bg-red-100 transition flex items-center gap-2 text-red-600 font-medium ml-auto">
+                    <i class="fa-solid fa-xmark"></i> 清除條件
+                </button>
+            </div>
+        </div>
+
+        <!-- 表格區塊 -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex-1">
+            <div class="overflow-x-auto">
+                <table class="table-auto w-full border-collapse">
+                    <thead class="bg-white">
+                        <tr class="border-b border-gray-200">
+                            <th class="w-[22%] md:w-[10%] py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('student_no')">
+                                學生編號
+                                {% if input_data.sort_by == 'student_no' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-1-9{% else %}fa-arrow-down-9-1{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="w-[58%] md:w-[15%] py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('cn_name')">
+                                中文姓名
+                                {% if input_data.sort_by == 'cn_name' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-a-z{% else %}fa-arrow-down-z-a{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="hidden md:table-cell w-[15%] py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('en_name')">
+                                英文姓名
+                                {% if input_data.sort_by == 'en_name' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-a-z{% else %}fa-arrow-down-z-a{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="hidden md:table-cell w-[10%] py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('dob')">
+                                出生日期
+                                {% if input_data.sort_by == 'dob' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-1-9{% else %}fa-arrow-down-9-1{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="hidden md:table-cell w-[15%] py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('contact1_name')">
+                                聯絡人
+                                {% if input_data.sort_by == 'contact1_name' %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="hidden md:table-cell w-[15%] py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('contact1_phone')">
+                                聯絡電話
+                                {% if input_data.sort_by == 'contact1_phone' %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+
+                            <th class="hidden md:table-cell w-[10%] py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('is_active')">
+                                狀態
+                                {% if input_data.sort_by == 'is_active' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-a-z{% else %}fa-arrow-down-z-a{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="hidden md:table-cell w-[10%] py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('is_email_verified')">
+                                Email驗證
+                                {% if input_data.sort_by == 'is_email_verified' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-a-z{% else %}fa-arrow-down-z-a{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="w-[20%] md:w-[5%] py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for student in page_obj %}
+                        <tr class="hover:bg-gray-50 transition-colors text-sm text-gray-700">
+                            <td class="py-2.5 px-4 align-top text-gray-500">{{student.student_no}}</td>
+
+                            <td class="py-2.5 px-4 align-top font-medium text-gray-800">
+                                <a href="{% url "students:student_view" student.hash_id %}" class="text-blue-600 hover:underline">
+                                {{student.cn_name}}
+                                </a>
+                            </td>
+
+                            <td class="hidden md:table-cell py-2.5 px-4 align-top">
+                                <a href="{% url "students:student_view" student.hash_id %}" class="text-blue-600 hover:underline">
+                                {{student.en_name}}
+                                </a>
+                            </td>
+
+                            <td class="hidden md:table-cell py-2.5 px-4 align-top text-gray-500">{{student.dob}}</td>
+                            <td class="hidden md:table-cell py-2.5 px-4 align-top">{{student.contact1_name}}</td>
+                            <td class="hidden md:table-cell py-2.5 px-4 align-top text-gray-500">{{student.contact1_phone}}</td>
+                            <td class="hidden md:table-cell py-2.5 px-4 align-top">
+                                {% if student.is_active %}
+                                    <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[11px] font-medium border border-green-200">啟用</span>
+                                {% else %}
+                                    <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-[11px] font-medium border border-red-200">停用</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td class="hidden md:table-cell py-2.5 px-4 align-top">
+                                {% if student.is_email_verified %}
+                                    <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[11px] font-medium border border-blue-200">已驗證</span>
+                                {% else %}
+                                    <span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-[11px] font-medium border border-amber-200">未驗證</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-2.5 px-4 align-top text-right">
+                                <button type="button" class="more-btn text-gray-400 text-lg hover:text-gray-700 transition" data-id="{{ student.hash_id }}">
+                                    <div class="px-2 py-1">
+                                        <i class="fa-solid fa-ellipsis-v"></i>
+                                    </div>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-12 text-gray-400">
+                                <i class="fa-solid fa-folder-open text-4xl mb-3 text-gray-200 block"></i>
+                                目前沒有符合條件的學生資料
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <input type="hidden" name="page" id="page_input" value="{{ page_obj.number|default:1 }}">
+    </form> 
+
+    {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4 rounded-xl shadow-sm text-xs">
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm text-gray-500">
+                    顯示第 <span class="font-medium text-gray-700">{{ page_obj.start_index }}</span> 到第 <span class="font-medium text-gray-700">{{ page_obj.end_index }}</span> 筆紀錄，共 <span class="font-medium text-gray-700">{{ page_obj.paginator.count }}</span> 筆
+                </p>
+            </div>
+            <div>
+                <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm bg-white">
+                    {% if page_obj.has_previous %}
+                        <button type="button" onclick="changePage({{ page_obj.previous_page_number }})" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </button>
+                    {% else %}
+                        <span class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-200 bg-gray-50 cursor-not-allowed">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </span>
+                    {% endif %}
+
+                    {% for i in page_obj.paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <span class="relative z-10 inline-flex items-center bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white">{{ i }}</span>
+                        {% else %}
+                            <button type="button" onclick="changePage({{ i }})" class="relative inline-flex items-center px-3.5 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">{{ i }}</button>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <button type="button" onclick="changePage({{ page_obj.next_page_number }})" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </button>
+                    {% else %}
+                        <span class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-200 bg-gray-50 cursor-not-allowed">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </span>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 全域更多操作彈窗，統一列表風格 -->
+    <div id="globalMoreMenu" class="hidden fixed z-[999999] bg-white border border-gray-200 shadow-xl rounded-lg min-w-[140px] overflow-hidden">
+        <a id="menuView" href="#" class="py-2.5 px-4 hover:bg-blue-50 hover:text-blue-600 transition cursor-pointer flex items-center gap-3 text-sm text-gray-700">
+            <i class="fa-solid fa-eye text-gray-400"></i> 檢視詳情
+        </a>
+        <a id="menuEdit" href="#" class="py-2.5 px-4 hover:bg-blue-50 hover:text-blue-600 transition cursor-pointer flex items-center gap-3 text-sm text-gray-700 border-t border-gray-100">
+            <i class="fa-solid fa-pen-to-square text-blue-500"></i> 編輯學生
+        </a>
+    </div>
+</main>
+
+<script>
+// 共用提交函數（攜帶排序參數，與所有列表頁一致）
+function submitGetForm() {
+    const form = document.getElementById('studentForm');
+    const csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (csrfInput) {
+        csrfInput.remove();
+    }
+    form.submit();
+};
+
+// 清除篩選同時重置排序
+function clearAllFilters() {
+    const form = document.getElementById('studentForm');
+    document.getElementById('sort_by_input').value = '';
+    document.getElementById('sort_dir_input').value = 'asc';
+    
+    const keywordInput = form.querySelector('input[name="txtkeyword"]');
+    if (keywordInput) keywordInput.value = '';
+    
+    const activeSelect = form.querySelector('select[name="filter_active"]');
+    if (activeSelect) activeSelect.value = '';
+    
+    const emailSelect = form.querySelector('select[name="filter_email"]');
+    if (emailSelect) emailSelect.value = '';
+    
+    submitGetForm();
+};
+
+// 排序切換邏輯
+function handleSort(columnName) {
+    const sortByInput = document.getElementById('sort_by_input');
+    const sortDirInput = document.getElementById('sort_dir_input');
+    if (sortByInput.value === columnName) {
+        sortDirInput.value = sortDirInput.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortByInput.value = columnName;
+        sortDirInput.value = 'asc';
+    }
+    submitGetForm();
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const globalMoreMenu = document.getElementById('globalMoreMenu');
+    // 關閉所有下拉選單共用函數
+    function closeAllMenus() {
+        globalMoreMenu.classList.add('hidden');
+        document.querySelectorAll('.dropdown-action > div').forEach(m => m.classList.add('hidden'));
+    }
+
+    // More 按鈕彈窗邏輯（自動判斷螢幕上下邊界，避免超出視窗）
+    document.querySelectorAll('.more-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeAllMenus();
+            const rect = btn.getBoundingClientRect();
+            globalMoreMenu.classList.remove('hidden');
+            const menuH = globalMoreMenu.offsetHeight;
+            const top = rect.bottom + 5 + menuH > window.innerHeight 
+                        ? rect.top - menuH - 5 
+                        : rect.bottom + 5;
+            globalMoreMenu.style.left = (rect.left - 140) + 'px';
+            globalMoreMenu.style.top = top + 'px';
+            const id = btn.dataset.id;
+            document.getElementById('menuView').href = `/manage/students/view/${id}`;
+            document.getElementById('menuEdit').href = `/manage/students/edit/${id}`;
+        });
+    });
+
+    // 批次操作下拉開關
+    document.querySelectorAll('.dropdown-action').forEach(wrap => {
+        const btn = wrap.querySelector('button');
+        const menu = wrap.querySelector('div');
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const open = !menu.classList.contains('hidden');
+            closeAllMenus();
+            if (!open) menu.classList.remove('hidden');
+        });
+    });
+
+    // 點空白處 / 滾動頁面關閉彈窗
+    document.addEventListener('click', closeAllMenus);
+    window.addEventListener('scroll', closeAllMenus, true);
+});
+
+function changePage(pageNumber) {
+    document.getElementById('page_input').value = pageNumber;
+    submitGetForm(); 
+}
+</script>
+{% endblock %}

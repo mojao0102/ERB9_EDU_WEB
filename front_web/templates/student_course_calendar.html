@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<!-- 頂部Banner背景，與dashboard共用風格 -->
+<div class="relative h-[120px] bg-cover bg-center" 
+    style="background-image: url('{% static "img/banner/news_banner.png" %}');">
+</div>
+
+<!-- 頁面主內容區塊 -->
+<section class="py-10 px-4">
+    <div class="max-w-4xl mx-auto">
+        <!-- 問候文字區塊 -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">課程日歷</h1>
+            <p class="text-gray-500">
+                {{request.session.student_name}}的課程行事曆，一覽所有已報名上課時段
+            </p>
+        </div>
+
+        <!-- 行事曆卡片容器 -->
+        <div class="bg-white shadow-lg rounded-xl p-6 border">
+            <div id="calendar"></div>
+        </div>
+    </div>
+</section>
+
+<!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+<style>
+    /* 行事曆外層固定高度 */
+    #calendar {
+        min-height: 600px;
+    }
+    .fc-event {
+        cursor: pointer;
+    }
+
+    /* 1. 強制所有日期格子尺寸固定，互不影響 */
+    .fc-daygrid-day {
+        height: 120px !important;
+        min-height: 120px !important;
+        max-height: 120px !important;
+        overflow: hidden !important;
+    }
+    .fc-daygrid-day-events {
+        max-height: calc(100% - 24px) !important;
+        overflow: hidden !important;
+    }
+
+    /* 2. 事件強制單行，超出省略... */
+    .fc-daygrid-event {
+        white-space: nowrap !important;
+        align-items: flex-start !important;
+        overflow: hidden !important;
+        width: 100% !important;
+    }
+    
+    .fc-custom-event {
+        padding: 2px 4px;
+        line-height: 1.2;
+        width: 100%;
+        overflow: hidden;
+    }
+    /* 課程名稱單行省略 */
+    .fc-custom-title {
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+    }
+    .fc-custom-time {
+        display: block;
+    }
+</style>
+
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarDom = document.getElementById('calendar');
+    const calendar = new FullCalendar.Calendar(calendarDom, {
+        locale: 'zh-tw',
+        timeZone: 'local',
+        initialView: 'dayGridMonth',
+        displayEventTime: false,
+        
+        eventContent: function(arg) {
+            let titleParts = arg.event.title.split(' ');
+            let timePart = titleParts[0];
+            let namePart = titleParts.slice(1).join(' ');
+
+            let customHtml = `
+                <div class="fc-custom-event">
+                    <span class="fc-custom-time font-semibold text-[11px] block opacity-80">${timePart}</span>
+                    <span class="fc-custom-title font-medium text-[13px]">${namePart}</span>
+                </div>
+            `;
+            return { html: customHtml };
+        },
+
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        events: "{% url 'front_web:student_calendar_events' %}",
+
+        // 滑鼠移入事件：浮窗顯示完整課程名 + 詳細內容
+        eventMouseEnter: function(info) {
+            const fullCourseName = info.event.title;
+            const desc = info.event.extendedProps.description || "";
+
+            const tooltip = document.createElement('div');
+            tooltip.style.cssText = `
+                position:absolute; background:#fff; border:1px #ddd solid;
+                padding:10px 14px; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.12);
+                z-index:99999; max-width:320px; font-size:13px; white-space:pre-line;
+                pointer-events:none;
+            `;
+            tooltip.innerHTML = `
+                <div class="font-bold text-gray-900 mb-1">${fullCourseName}</div>
+                <div class="text-gray-600 text-sm">${desc}</div>
+            `;
+            document.body.appendChild(tooltip);
+
+            // 取得浮窗實際寬高
+            const tipW = tooltip.offsetWidth;
+            const tipH = tooltip.offsetHeight;
+            const offset = 15; // 滑鼠與浮窗間距
+
+            function moveTip(e) {
+                let x = e.pageX + offset;
+                let y = e.pageY + offset;
+
+                // 視窗邊界範圍
+                const winW = window.innerWidth;
+                const winH = window.innerHeight;
+
+                // 右側溢出 → 浮窗改放滑鼠左邊
+                if (x + tipW > winW) {
+                    x = e.pageX - tipW - offset;
+                }
+                // 底部溢出 → 浮窗改放滑鼠上方
+                if (y + tipH > winH) {
+                    y = e.pageY - tipH - offset;
+                }
+                // 左側溢出防呆（極窄螢幕）
+                if (x < 10) x = 10;
+                // 頂部溢出防呆
+                if (y < 10) y = 10;
+
+                tooltip.style.left = x + "px";
+                tooltip.style.top = y + "px";
+            }
+
+            document.addEventListener("mousemove", moveTip);
+            // 初始化一次位置，避免一開始閃出界
+            moveTip(event);
+
+            info.el.addEventListener("mouseleave", () => {
+                tooltip.remove();
+                document.removeEventListener("mousemove", moveTip);
+            }, {once:true});
+        }
+    });
+    calendar.render();
+})
+</script>
+
+{% endblock %}

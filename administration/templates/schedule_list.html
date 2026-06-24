@@ -1,0 +1,320 @@
+{% extends "staff_base.html" %} 
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<main class="md:ml-[200px] flex-1 p-8 pt-16 md:pt-8 bg-gray-50 min-h-screen">
+    {% include "partials/_alert.html" %} 
+    
+    <div class="flex justify-between items-end mb-6">
+        <h1 class="text-xl font-bold text-gray-800 flex items-center">
+            <i class="fa-solid fa-calendar-days text-blue-500 mr-3"></i> 課程排期總覽
+        </h1>
+    </div>    
+
+    <div class="mb-4 text-sm font-medium text-gray-500 flex items-center gap-2 bg-white px-4 py-2.5 rounded-lg border border-gray-200 shadow-sm w-fit">
+        <i class="fa-solid fa-clock text-blue-500"></i>
+        <span>目前檢視日期區間：<span class="text-gray-800 font-bold">{{ dict_input_data.date_from }}</span> 至 <span class="text-gray-800 font-bold">{{ dict_input_data.date_to }}</span></span>
+        <span class="ml-2 pl-3 border-l border-gray-200 text-gray-400">共找到 {{ total_count }} 堂課</span>
+    </div>
+
+    <form id="scheduleForm" method="GET" action="{% url 'administration:schedule_list' %}" class="w-full" onsubmit="event.preventDefault(); submitForm();">
+        <button type="submit" class="hidden" aria-hidden="true"></button>
+        <input type="hidden" name="sort_by" id="sort_by_input" value="{{ dict_input_data.sort_by|default:'lesson_date' }}">
+        <input type="hidden" name="sort_dir" id="sort_dir_input" value="{{ dict_input_data.sort_dir|default:'asc' }}">
+        <input type="hidden" name="page" id="page_input" value="{{ page_obj.number|default:1 }}">
+
+        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-4">
+            <div class="flex flex-wrap items-center gap-3 text-sm">
+
+                <div class="flex items-center gap-2 border border-gray-200 bg-gray-50 px-3 py-1.5 rounded-lg">
+                    <span class="text-sm text-gray-500 font-medium">區間：</span>
+                    <input type="text" placeholder="YYYY-MM-DD" name="date_from" value="{{ dict_input_data.date_from }}" class="datepicker w-[85px] bg-transparent text-xs text-gray-700 font-medium focus:outline-none cursor-pointer">
+                    <span class="text-gray-400 text-sm">至</span>
+                    <input type="text" placeholder="YYYY-MM-DD" name="date_to" value="{{ dict_input_data.date_to }}" class="datepicker w-[85px] bg-transparent text-xs text-gray-700 font-medium focus:outline-none cursor-pointer">
+                </div>
+
+                <div class="relative flex-grow max-w-[280px]">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" name="txtkeyword" value="{{ dict_input_data.txtkeyword }}" placeholder="搜尋課程、導師、課堂標題..." class="text-xs w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition">
+                </div>
+
+                <button type="button" onclick="submitForm()" class="text-xs border border-gray-300 py-2 px-4 rounded hover:bg-gray-50 transition flex items-center gap-2 text-gray-600 font-medium ml-auto">
+                    <i class="fa-solid fa-arrows-rotate mr-1"></i>重整
+                </button>
+                <button type="button" onclick="clearFilters()" class="text-xs border border-red-200 bg-red-50 py-2 px-4 rounded hover:bg-red-100 transition flex items-center gap-2 text-red-600 font-medium">
+                    <i class="fa-solid fa-xmark"></i> 回到今日
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="table-auto w-full border-collapse">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="py-3 px-6 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[12%] cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('lesson_date')">
+                                上課日期
+                                {% if dict_input_data.sort_by == 'lesson_date' %}
+                                    <i class="fa-solid {% if dict_input_data.sort_dir == 'asc' %}fa-arrow-down-1-9{% else %}fa-arrow-up-9-1{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="py-3 px-6 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[12%] cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('start_time')">
+                                上課時間
+                                {% if dict_input_data.sort_by == 'start_time' %}
+                                    <i class="fa-solid {% if dict_input_data.sort_dir == 'asc' %}fa-arrow-down-1-9{% else %}fa-arrow-up-9-1{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="py-3 px-6 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[22%] cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('course__name')">
+                                課程資訊
+                                {% if dict_input_data.sort_by == 'course__name' %}
+                                    <i class="fa-solid {% if dict_input_data.sort_dir == 'asc' %}fa-arrow-down-a-z{% else %}fa-arrow-up-z-a{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+
+                            <th class="hidden md:table-cell py-3 px-6 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[12%] cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('course__teacher__first_name')">
+                                導師
+                                {% if dict_input_data.sort_by == 'course__teacher__first_name' %}
+                                    <i class="fa-solid {% if dict_input_data.sort_dir == 'asc' %}fa-arrow-down-a-z{% else %}fa-arrow-up-z-a{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+
+                            <th class="hidden md:table-cell py-3 px-6 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[10%] cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('course__default_room__name')">
+                                課室
+                                {% if dict_input_data.sort_by == 'course__default_room__name' %}
+                                    <i class="fa-solid {% if dict_input_data.sort_dir == 'asc' %}fa-arrow-down-a-z{% else %}fa-arrow-up-z-a{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+
+                            <th class="hidden md:table-cell py-3 px-6 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[15%]">課堂標題</th>
+                            <th class="hidden md:table-cell py-3 px-6 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[20%]">內容/備註</th>
+                            <th class="py-3 px-6 text-center text-gray-500 text-xs font-semibold uppercase tracking-wider w-[7%]">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for schedule in page_obj %}
+                        <tr class="hover:bg-gray-50 transition-colors text-sm text-gray-700">
+                            
+                            <td class="py-4 px-6 font-medium text-blue-600 align-middle">
+                                {% if schedule.lesson_date %}
+                                    {{ schedule.lesson_date|date:"Y-m-d" }}
+                                    <div class="text-xs text-gray-400 mt-0.5">{{ schedule.lesson_date|date:"l" }}</div>
+                                {% else %}
+                                    <span class="text-gray-400">未定</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td class="py-4 px-6 text-gray-600 align-middle">
+                                <span class="bg-gray-100 text-gray-700 px-2.5 py-1 rounded text-xs font-medium border border-gray-200">
+                                    {{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}
+                                </span>
+                            </td>
+
+                            <td class="py-4 px-6 align-middle font-medium text-gray-800">
+                                <a href="{% url 'courses:course_view' schedule.course.hash_id %}" class="text-blue-700 hover:underline block truncate max-w-[200px]" title="{{ schedule.course.name }}">
+                                    {{ schedule.course.name }}
+                                </a>
+                                <div class="text-xs text-gray-400 font-mono mt-0.5">{{ schedule.course.code }}</div>
+                            </td>
+
+                            <td class="hidden md:table-cell py-4 px-6 align-middle text-gray-600">
+                                <a href="{% url 'teachers:teacher_view' schedule.course.teacher.hash_id %}" class="hover:underline">
+                                    {{ schedule.course.teacher.title|default:"" }} {{ schedule.course.teacher.first_name }} {{ schedule.course.teacher.last_name }}
+                                </a>
+                            </td>
+                            
+                            <td class="hidden md:table-cell py-4 px-6 align-middle">
+                                {% if schedule.course.default_room %}
+                                    <span class="bg-indigo-50 text-indigo-600 px-2 py-1 rounded font-medium border border-indigo-100 whitespace-nowrap">
+                                        {{ schedule.course.default_room.name }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="hidden md:table-cell py-4 px-6 align-middle text-gray-800 font-medium">
+                                {{ schedule.lesson_title|default:"-" }}
+                            </td>
+
+                            <td class="hidden md:table-cell py-4 px-6 align-middle">
+                                <div class="text-[11px] text-gray-500 truncate max-w-[180px]" title="{{ schedule.lesson_content }}">{{ schedule.lesson_content|default:"-" }}</div>
+                                {% if schedule.remarks %}
+                                    <div class="text-[11px] text-amber-600 mt-1 truncate max-w-[180px]" title="{{ schedule.remarks }}"><i class="fa-solid fa-circle-info mr-1"></i>{{ schedule.remarks }}</div>
+                                {% endif %}
+                            </td>
+
+                            <td class="py-4 px-6 text-center relative align-middle">
+                                <button type="button" onclick="toggleActionMenu(event, 'dropdown-schedule-{{ forloop.counter }}', this)" class="dropdown-trigger text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition focus:outline-none">
+                                    <i class="fa-solid fa-ellipsis-vertical pointer-events-none"></i>
+                                </button>
+                            
+                                <div id="dropdown-schedule-{{ forloop.counter }}" class="action-menu hidden fixed w-36 bg-white border border-gray-200 rounded-lg shadow-xl z-[999999] text-left py-1 overflow-hidden animate-fade-in">
+                                    <a href="{% url 'courses:course_view' schedule.course.hash_id %}?tab=schedule" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2">
+                                        <i class="fa-solid fa-calendar-check w-4 text-center text-blue-500"></i> 管理此排期
+                                    </a>
+                                    <a href="{% url 'courses:course_view' schedule.course.hash_id %}?tab=students" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2 border-t border-gray-100">
+                                        <i class="fa-solid fa-users w-4 text-center text-green-500"></i> 學生名單
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-16 text-gray-400">
+                                <i class="fa-regular fa-calendar-xmark text-4xl mb-3 text-gray-200 block"></i>
+                                於所選的日期區間內，目前尚無任何課程排期
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4 rounded-xl shadow-sm text-xs">
+            <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-500">
+                        顯示第 <span class="font-medium text-gray-700">{{ page_obj.start_index }}</span> 到第 <span class="font-medium text-gray-700">{{ page_obj.end_index }}</span> 筆紀錄，共 <span class="font-medium text-gray-700">{{ page_obj.paginator.count }}</span> 筆
+                    </p>
+                </div>
+                <div>
+                    <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm bg-white">
+                        {% if page_obj.has_previous %}
+                            <button type="button" onclick="changePage({{ page_obj.previous_page_number }})" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                <i class="fa-solid fa-chevron-left text-xs"></i>
+                            </button>
+                        {% else %}
+                            <span class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-200 bg-gray-50 cursor-not-allowed">
+                                <i class="fa-solid fa-chevron-left text-xs"></i>
+                            </span>
+                        {% endif %}
+
+                        {% for i in page_obj.paginator.page_range %}
+                            {% if page_obj.number == i %}
+                                <span class="relative z-10 inline-flex items-center bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white">{{ i }}</span>
+                            {% else %}
+                                <button type="button" onclick="changePage({{ i }})" class="relative inline-flex items-center px-3.5 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">{{ i }}</button>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <button type="button" onclick="changePage({{ page_obj.next_page_number }})" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                <i class="fa-solid fa-chevron-right text-xs"></i>
+                            </button>
+                        {% else %}
+                            <span class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-200 bg-gray-50 cursor-not-allowed">
+                                <i class="fa-solid fa-chevron-right text-xs"></i>
+                            </span>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </form>
+</main>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+let isClearing = false;
+document.addEventListener('DOMContentLoaded', function() {
+    // 綁定 Flatpickr 日期選擇器
+    flatpickr(".datepicker", {
+        dateFormat: "Y-m-d", 
+        allowInput: true,    
+        onChange: function(selectedDates, dateStr, instance) {
+            if (!isClearing) submitForm();
+        }
+    });
+});
+
+function submitForm() {
+    const pageInput = document.getElementById('page_input');
+    // 若變更了搜尋或排序條件，將頁碼重設回第1頁
+    if (pageInput && window.event && (window.event.type === 'change' || window.event.type === 'click' && !window.event.target.closest('nav'))) {
+        pageInput.value = 1;
+    }
+    document.getElementById('scheduleForm').submit();
+}
+
+// 點擊「回到今日」時，清空傳入的 value (後端預設會用 timezone.now 補上)
+function clearFilters() {
+    isClearing = true;
+    const form = document.getElementById('scheduleForm');
+    
+    document.getElementById('sort_by_input').value = 'lesson_date';
+    document.getElementById('sort_dir_input').value = 'asc';
+
+    form.querySelector('input[name="txtkeyword"]').value = '';
+    
+    form.querySelectorAll('.datepicker').forEach(input => {
+        if (input._flatpickr) input._flatpickr.clear();
+        input.value = '';
+    });
+
+    submitForm();
+}
+
+function handleSort(columnName) {
+    const sortByInput = document.getElementById('sort_by_input');
+    const sortDirInput = document.getElementById('sort_dir_input');
+
+    if (sortByInput.value === columnName) {
+        sortDirInput.value = sortDirInput.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortByInput.value = columnName;
+        sortDirInput.value = 'asc';
+    }
+    submitForm();
+}
+
+// 全域下拉選單控制 (與金流頁面一致)
+document.addEventListener('click', function(event) {
+    if (!event.target.classList.contains('dropdown-trigger')) {
+        document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
+    }
+});
+
+window.addEventListener('scroll', () => {
+    document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
+}, true);
+
+function toggleActionMenu(event, menuId, btnElement) {
+    event.stopPropagation(); 
+    
+    document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
+    
+    const targetMenu = document.getElementById(menuId);
+    targetMenu.classList.remove('hidden');
+    
+    const rect = btnElement.getBoundingClientRect();
+    const menuH = targetMenu.offsetHeight;
+    const top = rect.bottom + 5 + menuH > window.innerHeight ? rect.top - menuH - 5 : rect.bottom + 5;
+    
+    targetMenu.style.left = (rect.left - 120) + 'px';
+    targetMenu.style.top = top + 'px';
+}
+
+function changePage(pageNumber) {
+    document.getElementById('page_input').value = pageNumber;
+    document.getElementById('scheduleForm').submit(); 
+}
+</script>
+{% endblock %}

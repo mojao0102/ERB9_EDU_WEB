@@ -1,0 +1,14 @@
+{% load static %}
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="relative h-[180px] bg-cover bg-center" style="background-image: url('{% static 'img/bg/page.jpg' %}');"></div>
+
+<section class="mt-8 bg-white flex flex-col items-center justify-center gap-10 px-6">
+    <div class="w-24 h-24 rounded-full flex items-center justify-center">
+        <i class="fa-solid fa-triangle-exclamation text-[6rem]" style="color: rgb(53, 53, 53);"></i>
+    </div>
+    <h2 class="text-2xl text-gray-600 font-medium">抱歉, 沒有這個頁面喔...</h2>
+    <a href="{% url 'front_web:home' %}" class="py-4 px-14 rounded-full bg-[#555555] text-white text-xl text-center font-medium">返回主頁</a>
+</section>
+{% endblock %}

@@ -1,0 +1,346 @@
+{% extends "staff_base.html" %} 
+{% load static %} 
+{% load humanize %} 
+
+{% block content %}
+<main class="md:ml-[200px] flex-1 p-8 pt-16 md:pt-8 bg-gray-100 min-h-screen">
+    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-2">
+        {% include "partials/_alert.html" %}
+        <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+            <div>
+                <h1 class="text-xl font-bold text-gray-800 mb-1">學生詳細資料</h1>
+                <p class="text-sm text-gray-500 font-medium">目前檢視學生：<span class="text-gray-700 font-mono">{{ student.student_no }}</span></p>
+            </div>
+
+            <div class="flex gap-2 text-sm font-medium">
+                <a href="{% url 'students:student_edit' student.hash_id %}" class="bg-blue-500 text-white px-5 py-2 rounded hover:bg-blue-600 transition flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-pen-to-square"></i> 編輯資料
+                </a>
+                <a href="{% url 'students:student_list' %}" class="bg-white border border-gray-300 text-gray-700 px-5 py-2 rounded hover:bg-gray-50 transition flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-arrow-left"></i> 返回列表
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
+        <div class="md:col-span-2 bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-gray-700 mb-5 pb-2 border-b">
+                    <i class="fa-solid fa-id-card text-blue-500 mr-2"></i>基本資料
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3.5">
+                    <div class="flex items-center border-b border-gray-50 pb-2">
+                        <span class="text-sm font-medium text-gray-400 w-24 shrink-0">學生編號</span>
+                        <span class="text-gray-800 font-mono text-sm font-semibold">{{ student.student_no }}</span>
+                    </div>
+                    <div class="flex items-center border-b border-gray-50 pb-2">
+                        <span class="text-sm font-medium text-gray-400 w-24 shrink-0">中文姓名</span>
+                        <span class="text-gray-800 font-medium text-sm">{{ student.cn_name }}</span>
+                    </div>
+                    <div class="flex items-center border-b border-gray-50 pb-2">
+                        <span class="text-sm font-medium text-gray-400 w-24 shrink-0">英文姓名</span>
+                        <span class="text-gray-800 text-sm">{{ student.en_name|default:"-" }}</span>
+                    </div>
+                    <div class="flex items-center border-b border-gray-50 pb-2">
+                        <span class="text-sm font-medium text-gray-400 w-24 shrink-0">出生日期</span>
+                        <span class="text-gray-800 text-sm font-sans">{{ student.dob|date:"Y-m-d"|default:"-" }}</span>
+                    </div>
+                    <div class="flex items-center border-b border-gray-50 pb-2">
+                        <span class="text-sm font-medium text-gray-400 w-24 shrink-0">電子信箱</span>
+                        <span class="text-gray-800 text-sm break-all font-sans">{{ student.email|default:"無" }}</span>
+                    </div>
+                    <div class="flex items-center border-b border-gray-50 pb-2">
+                        <span class="text-sm font-medium text-gray-400 w-24 shrink-0">就讀學校</span>
+                        <span class="text-gray-800 text-sm">{{ student.school|default:"無" }}</span>
+                    </div>
+                    <div class="flex items-start border-b border-gray-50 pb-2 md:col-span-2">
+                        <span class="text-sm font-medium text-gray-400 w-24 shrink-0 pt-0.5">備註說明</span>
+                        <span class="text-gray-700 text-sm leading-relaxed">{{ student.remarks|default:"-" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-2 pt-4 border-t border-gray-100">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <i class="fa-solid fa-phone-flip text-cyan-500"></i> 緊急聯絡人資訊
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3.5">
+                    <div class="flex items-center border-b border-gray-50 pb-2">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-gray-800 font-semibold text-sm">{{ student.contact1_name }}</span>
+                            <span class="text-[11px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-medium">{{ student.contact1_relationship|default:"聯絡人" }}</span>
+                            <span class="text-gray-600 text-sm font-sans ml-1 flex items-center gap-1">
+                                <i class="fa-solid fa-mobile-screen-button text-gray-400 text-xs"></i>{{ student.contact1_phone }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex items-center border-b border-gray-50 pb-2">
+                        {% if student.contact2_name or student.contact2_phone %}
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-gray-800 font-semibold text-sm">{{ student.contact2_name|default:"-" }}</span>
+                            <span class="text-[11px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-medium">{{ student.contact2_relationship|default:"備用" }}</span>
+                            <span class="text-gray-600 text-sm font-sans ml-1 flex items-center gap-1">
+                                <i class="fa-solid fa-mobile-screen-button text-gray-400 text-xs"></i>{{ student.contact2_phone|default:"-" }}
+                            </span>
+                        </div>
+                        {% else %}
+                        <span class="text-gray-400 text-sm italic font-normal">未提供</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="md:col-span-1 bg-white p-3 rounded-xl border border-gray-200 shadow-sm h-fit">
+            <h2 class="text-lg font-bold text-gray-700 mb-5 pb-2 border-b">
+                <i class="fa-solid fa-laptop-code text-purple-500 mr-2"></i>系統狀態
+            </h2>
+            <ul class="space-y-3 text-sm text-gray-600">
+                <li class="flex justify-between items-center">
+                    <span class="text-gray-500">帳號狀態</span>
+                    {% if student.is_active %}
+                        <span class="bg-green-100 text-green-700 px-2.5 py-1 rounded font-medium text-xs"><i class="fa-solid fa-check mr-1"></i>正常啟用</span>
+                    {% else %}
+                        <span class="bg-red-100 text-red-700 px-2.5 py-1 rounded font-medium text-xs"><i class="fa-solid fa-ban mr-1"></i>已停用</span>
+                    {% endif %}
+                </li>
+                <li class="flex justify-between items-center border-t border-gray-100 pt-3">
+                    <span class="text-gray-500">Email 驗證</span>
+                    {% if student.is_email_verified %}
+                        <span class="bg-green-100 text-green-700 px-2.5 py-1 rounded font-medium text-xs"><i class="fa-solid fa-circle-check mr-1"></i>已驗證</span>
+                    {% else %}
+                        <span class="bg-amber-100 text-amber-700 px-2.5 py-1 rounded font-medium text-xs"><i class="fa-solid fa-circle-exclamation mr-1"></i>未驗證</span>
+                    {% endif %}
+                </li>
+                <li class="flex justify-between items-center border-t border-gray-100 pt-3">
+                    <span class="text-gray-500">建立時間</span>
+                    <span class="font-medium text-gray-800">{{ student.register_date|date:"Y-m-d H:i"|default:"-" }}</span>
+                </li>
+                <li class="flex justify-between items-center">
+                    <span class="text-gray-500">建立人員</span>
+                    <span class="font-medium text-gray-700 font-mono">{{ student.created_by|default:"System" }}</span>
+                </li>
+                <li class="flex justify-between items-center border-t border-gray-100 pt-3">
+                    <span class="text-gray-500">最後更新</span>
+                    <span class="font-medium text-gray-800">{{ student.last_updated_datetime|date:"Y-m-d H:i"|default:"-"}}</span>
+                </li>
+                <li class="flex justify-between items-center">
+                    <span class="text-gray-500">更新人員</span>
+                    <span class="font-medium text-gray-700 font-mono">{{ student.last_updated_by|default:"-" }}</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mb-4 border-b border-gray-200">
+        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist">
+            <li class="mr-2" role="presentation">
+                <button class="inline-block p-4 border-b-2 text-blue-600 border-blue-600 rounded-t-lg tab-btn" data-target="tab-courses" type="button">
+                    <i class="fa-solid fa-graduation-cap mr-2"></i>報讀課程紀錄
+                </button>
+            </li>
+            <li class="mr-2" role="presentation">
+                <button class="inline-block p-4 border-b-2 text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300 rounded-t-lg tab-btn" data-target="tab-finance" type="button">
+                    <i class="fa-solid fa-file-invoice-dollar mr-2"></i>交易明細
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-8">
+        
+        <div id="tab-courses" class="tab-pane block">
+            <div class="overflow-x-auto">
+                <table class="table-auto w-full border-collapse">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr class="text-gray-500 text-xs font-semibold uppercase tracking-wider">
+                            <th class="py-3 px-6 text-left w-[10%]">課程代碼</th>
+                            <th class="py-3 px-6 text-left w-[15%]">課程名稱</th>
+                            <th class="py-3 px-6 text-left w-[11%]">授課導師</th>
+                            <th class="py-3 px-6 text-left w-[17%]">報名日期</th>
+                            <th class="py-3 px-6 text-left w-[12%]">報名狀態</th>
+                            <th class="py-3 px-6 text-left w-[10%]">課程狀態</th>
+                            <th class="py-3 px-6 text-left w-[25%]">開課區間</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
+                        {% for obj_course in list_courses %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-6 font-mono text-xs text-gray-500">{{ obj_course.code }}</td>
+                            <td class="py-4 px-6 font-medium text-gray-800">
+                                <a href="{% url 'courses:course_view' obj_course.hash_id %}" class="text-blue-600 hover:underline">{{ obj_course.name }}</a>
+                            </td>
+                            
+                            <td class="py-4 px-6 text-gray-600">
+                                {{ obj_course.teacher.title|default:"" }} {{ obj_course.teacher.first_name }} {{ obj_course.teacher.last_name }}
+                            </td>
+
+                            <td class="py-4 px-6 text-gray-600">{{ obj_course.sign_up_date }}</td>
+
+                            <td class="py-4 px-6">
+                                {% if obj_course.sign_up_status == 'success' %}
+                                    <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded shadow-sm font-medium">成功</span>
+                                {% elif obj_course.sign_up_status == 'waiting_list' %}
+                                    <span class="bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded shadow-sm font-medium">候補</span>
+                                {% elif obj_course.sign_up_status == 'cancel' %}
+                                    <span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded shadow-sm font-medium">已取消</span>
+                                    <div class="text-xs text-gray-400 mt-1">{{ obj_course.cancel_reason }}</div>
+                                {% else %}
+                                    <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">{{ obj_course.sign_up_status }}</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="py-4 px-6">
+                                {% if obj_course.course_dynamic_status == '報名中' %}
+                                    <span class="bg-green-100 text-green-700 text-xs px-2.5 py-0.5 rounded-full font-medium border border-green-200">{{ obj_course.course_dynamic_status }}</span>
+                                {% elif obj_course.course_dynamic_status == '進行中' %}
+                                    <span class="bg-blue-100 text-blue-700 text-xs px-2.5 py-0.5 rounded-full font-medium border border-blue-200">{{ obj_course.course_dynamic_status }}</span>
+                                {% elif obj_course.course_dynamic_status == '人數已滿' %}
+                                    <span class="bg-red-100 text-red-700 text-xs px-2.5 py-0.5 rounded-full font-medium border border-red-200">{{ obj_course.course_dynamic_status }}</span>
+                                {% elif obj_course.course_dynamic_status == '已完結' %}
+                                    <span class="bg-gray-100 text-gray-600 text-xs px-2.5 py-0.5 rounded-full font-medium border border-gray-200">{{ obj_course.course_dynamic_status }}</span>
+                                {% else %}
+                                    <span class="bg-orange-100 text-orange-700 text-xs px-2.5 py-0.5 rounded-full font-medium border border-orange-200">{{ obj_course.course_dynamic_status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-4 px-6 text-gray-500 text-sm font-sans">
+                                {{ obj_course.period_from|date:"Y-m-d" }} <span class="text-gray-700">-</span> {{ obj_course.period_to|date:"Y-m-d" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="py-12 text-center text-gray-400">
+                                <i class="fa-solid fa-book-open text-4xl mb-3 text-gray-200 block"></i>該學生目前沒有任何修讀中的課程
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-finance" class="tab-pane hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-2 bg-gray-50 border-b border-gray-200">
+                <div class="bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm border-l-4 border-l-green-500 flex justify-between items-center">
+                    <div class="flex items-baseline gap-3">
+                        <span class="text-xs font-medium text-gray-500">累計繳費金額</span>
+                        <span class="text-xs font-bold text-green-600">${{ total_payment|floatformat:2|intcomma }}</span>
+                    </div>
+                    <i class="fa-solid fa-arrow-trend-up text-sm text-green-300"></i>
+                </div>
+                <div class="bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm border-l-4 border-l-red-500 flex justify-between items-center">
+                    <div class="flex items-baseline gap-3">
+                        <span class="text-xs font-medium text-gray-500">累計退款總額</span>
+                        <span class="text-xs font-bold text-red-600">-${{ total_refund|floatformat:2|intcomma }}</span>
+                    </div>
+                    <i class="fa-solid fa-arrow-rotate-left text-sm text-amber-300"></i>
+                </div>
+            </div>
+            {% comment %} <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-2 bg-gray-50 border-b border-gray-200">
+                <div class="bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm border-l-4 border-l-green-500 flex justify-between items-center">
+                    <div class="flex items-baseline gap-3">
+                        <span class="text-xs font-medium text-gray-500">累計繳費金額</span>
+                        <span class="text-xs font-bold text-green-600">${{ total_payment|floatformat:2|intcomma }}</span>
+                    </div>
+                    <i class="fa-solid fa-arrow-trend-up text-sm text-green-300"></i>
+                </div>
+                <div class="bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm border-l-4 border-l-amber-500 flex justify-between items-center">
+                    <div class="flex items-baseline gap-3">
+                        <span class="text-xs font-medium text-gray-500">累計退款總額</span>
+                        <span class="text-xs font-bold text-amber-600">-${{ total_refund|floatformat:2|intcomma }}</span>
+                    </div>
+                    <i class="fa-solid fa-arrow-rotate-left text-sm text-amber-300"></i>
+                </div>
+                <div class="bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm border-l-4 border-l-blue-500 flex justify-between items-center">
+                    <div class="flex items-baseline gap-3">
+                        <span class="text-xs font-medium text-gray-500">中心淨收益額</span>
+                        <span class="text-xs font-bold text-blue-600">${{ net_income|floatformat:2|intcomma }}</span>
+                    </div>
+                    <i class="fa-solid fa-sack-dollar text-sm text-blue-300"></i>
+                </div>
+            </div> {% endcomment %}
+
+            <div class="overflow-x-auto">
+                <table class="table-auto w-full border-collapse">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="py-3 px-6 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[8%]">交易日期</th>
+                            <th class="py-3 px-6 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[20%]">對應課程項目</th>
+                            <th class="py-3 px-6 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[10%]">交易類型</th>
+                            <th class="py-3 px-6 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[12%]">變動金額</th>
+                            <th class="py-3 px-6 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[10%]">交易渠道</th>
+                            <th class="py-3 px-6 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider w-[40%]">Stripe 交易參考序號</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for obj_trans in list_trans %}
+                        <tr class="hover:bg-gray-50 transition-colors text-sm text-gray-700">
+                            <td class="py-4 px-6 align-middle">
+                                <div class="font-medium text-gray-800">{{ obj_trans.trans_date|date:"Y-m-d" }}</div>
+                                <div class="text-xs text-gray-400 mt-1 font-mono">{{ obj_trans.trans_date|date:"H:i" }}</div>
+                            </td>
+                            <td class="py-4 px-6 align-middle">
+                                <div class="font-medium text-gray-800">
+                                    <a href="{% url 'courses:course_view' obj_trans.course_id %}" class="text-blue-600 hover:underline">{{ obj_trans.course_name }}</a>
+                                </div>
+                                <div class="text-xs text-gray-400 mt-1 font-mono">Code: {{ obj_trans.course_code }}</div>
+                            </td>
+                            <td class="py-4 px-6 align-middle">
+                                {% if obj_trans.record_type == 'payment' %}
+                                    <span class="text-green-600 font-medium flex items-center gap-1"><i class="fa-solid fa-check-circle"></i>付款</span>
+                                {% elif obj_trans.record_type == 'refund' %}
+                                    <span class="text-red-600 font-medium flex items-center gap-1"><i class="fa-solid fa-arrow-rotate-left"></i>退款</span>
+                                    <div class="text-xs text-gray-400 mt-1 italic">原因: {{ obj_trans.reason }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="py-4 px-6 align-middle">
+                                {% if obj_trans.record_type == 'payment' %}
+                                    <div class="font-semibold text-green-600">+${{ obj_trans.trans_amount|floatformat:2|intcomma }}</div>
+                                {% elif obj_trans.record_type == 'refund' %}
+                                    <div class="font-semibold text-red-600">-${{ obj_trans.trans_amount|floatformat:2|intcomma }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="py-4 px-6 align-middle">
+                                <span class="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded font-medium font-sans uppercase tracking-wide">{{ obj_trans.trans_method }}</span>
+                            </td>
+                            <td class="py-4 px-6 text-xs text-gray-500 break-all align-middle leading-relaxed font-mono">
+                                {% if obj_trans.trans_ref %}<div><span class="text-gray-400">Ref:</span> {{ obj_trans.trans_ref }}</div>{% endif %} 
+                                {% if obj_trans.online_payment_session %}<div><span class="text-gray-400">Session:</span> {{ obj_trans.online_payment_session }}</div>{% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="py-8 text-center text-gray-400">該學生目前尚無任何金流交易明細紀錄</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    const tabPanes = document.querySelectorAll(".tab-pane");
+
+    tabButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            tabPanes.forEach((pane) => pane.classList.add("hidden"));
+            tabButtons.forEach((btn) => {
+                btn.classList.remove("text-blue-600", "border-blue-600");
+                btn.classList.add("text-gray-500", "border-transparent");
+            });
+
+            const targetId = button.getAttribute("data-target");
+            document.getElementById(targetId).classList.remove("hidden");
+            
+            button.classList.remove("text-gray-500", "border-transparent");
+            button.classList.add("text-blue-600", "border-blue-600");
+        });
+    });
+});
+</script>
+{% endblock %}

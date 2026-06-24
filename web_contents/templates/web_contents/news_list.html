@@ -1,0 +1,155 @@
+{% extends 'staff_base.html' %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<main class="md:ml-[200px] flex-1 p-8 pt-16 md:pt-8 bg-gray-50 min-h-screen">
+    {% include "partials/_alert.html" %} 
+
+    <div class="flex justify-between items-end mb-6">
+        <h1 class="text-xl font-bold text-gray-800 flex items-center">
+            <i class="fa-solid fa-newspaper text-blue-500 mr-4"></i> 最新消息管理
+        </h1>
+    </div>
+
+    <form id="newsForm" method="GET" action="{% url 'web_contents:news_list' %}" class="w-full">
+        {% csrf_token %}
+        <button type="submit" class="hidden" aria-hidden="true"></button>
+        <!-- 排序隱藏參數 -->
+        <input type="hidden" name="sort_by" id="sort_by_input" value="{{ input_data.sort_by }}">
+        <input type="hidden" name="sort_dir" id="sort_dir_input" value="{{ input_data.sort_dir|default:'asc' }}">
+
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm mb-3">
+            <div class="flex flex-wrap items-center gap-3 text-sm">
+
+                <a href="{% url 'web_contents:news_create' %}" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition flex items-center gap-2 shadow-sm font-medium">
+                    <i class="fa-solid fa-plus"></i> 新增消息
+                </a> 
+
+                <div class="relative flex-grow max-w-[460px]">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" name="keyword" value="{{ input_data.keyword }}" placeholder="搜尋消息標題..." 
+                    class="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition">
+                </div>
+
+                <button onclick="submitGetForm()" class="border border-gray-300 py-2 px-4 rounded hover:bg-gray-50 transition text-gray-600 font-medium">
+                    <i class="fa-solid fa-arrows-rotate mr-1"></i> 重整
+                </button>
+
+                <button type="button" onclick="clearAllFilters()" class="border border-red-200 bg-red-50 py-2 px-4 rounded hover:bg-red-100 transition flex items-center gap-2 text-red-600 font-medium">
+                    <i class="fa-solid fa-xmark"></i> 清除條件
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex-1">
+            <div class="overflow-x-auto">
+                <table class="table-auto w-full border-collapse">
+                    <thead class="bg-white">
+                        <tr class="border-b border-gray-200">
+                            <th class="w-[82%] md:w-[42%] py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('title')">
+                                消息標題
+                                {% if input_data.sort_by == 'title' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-a-z{% else %}fa-arrow-down-z-a{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="hidden md:table-cell w-[14%] py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('is_publish')">
+                                發佈狀態
+                                {% if input_data.sort_by == 'is_publish' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-1-9{% else %}fa-arrow-down-9-1{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="hidden md:table-cell w-[22%] py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:text-blue-600 select-none transition" onclick="handleSort('publish_date')">
+                                發佈時間
+                                {% if input_data.sort_by == 'publish_date' %}
+                                    <i class="fa-solid {% if input_data.sort_dir == 'asc' %}fa-arrow-up-1-9{% else %}fa-arrow-down-9-1{% endif %} ml-1 text-blue-500"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-sort text-gray-300 ml-1"></i>
+                                {% endif %}
+                            </th>
+                            
+                            <th class="w-[18%] md:w-[8%] py-3 px-4 text-left text-gray-500 text-xs font-semibold uppercase tracking-wider"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for news in news_list %}
+                        <tr class="hover:bg-gray-50 transition-colors text-sm text-gray-700">
+                            <td class="py-2.5 px-4 align-top font-medium text-gray-800">{{ news.title }}</td>
+                            <td class="hidden md:table-cell py-2.5 px-4 align-top">
+                                {% if news.is_publish %}
+                                    <i class="fa-solid fa-check text-green-500 bg-green-50 p-1 rounded-full"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-xmark text-gray-300"></i>
+                                {% endif %}
+                            </td>
+                            <td class="hidden md:table-cell py-2.5 px-4 align-top text-gray-500">{{ news.publish_date|date:"Y-m-d H:i" }}</td>
+                            
+                            <td class="py-2.5 px-4 align-top text-right">
+                                <a href="{% url 'web_contents:news_edit' news.hash_id %}">
+                                    <button type="button" class="text-gray-400 text-lg hover:text-blue-500 transition">
+                                        <div class="px-2 py-1">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </div>
+                                    </button>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-12 text-gray-400">
+                                <i class="fa-solid fa-folder-open text-4xl mb-3 text-gray-200 block"></i>
+                                目前沒有符合條件的消息記錄
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </form> 
+</main>
+
+<script>
+// 表單提交（同步攜帶排序參數）
+function submitGetForm() {
+    const form = document.getElementById('newsForm');
+    const csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (csrfInput) {
+        csrfInput.remove();
+    }
+    form.submit();
+};
+
+// 清除篩選並重置排序
+function clearAllFilters() {
+    const form = document.getElementById('newsForm');
+    // 重置排序
+    document.getElementById('sort_by_input').value = '';
+    document.getElementById('sort_dir_input').value = 'asc';
+    // 清空搜尋框
+    const keywordInput = form.querySelector('input[name="keyword"]');
+    if (keywordInput) keywordInput.value = '';
+    submitGetForm();
+};
+
+// 排序切換邏輯，與Course.html完全一致
+function handleSort(columnName) {
+    const sortByInput = document.getElementById('sort_by_input');
+    const sortDirInput = document.getElementById('sort_dir_input');
+
+    if (sortByInput.value === columnName) {
+        sortDirInput.value = sortDirInput.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortByInput.value = columnName;
+        sortDirInput.value = 'asc';
+    }
+    submitGetForm();
+};
+</script>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "base.html" %} 
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<!-- 1.2 background -->
+<div class="relative h-[120px]" 
+    style="background-image: url('{% static "img/bg/course_infants.avif" %}')">
+</div>
+
+<!-- 2. Page Content -->
+<div class="max-w-4xl mx-auto p-4 mt-6 rounded-xl h-full bg-gradient-to-br from-red-50 via-sky-50 to-yellow-100 ">
+
+    <!-- 頂部課程分類導航 -->
+    <div class="flex justify-center -space-x-2">
+    {% for mc in list_mc %}
+        <a href="{% url "front_web:course_list" mc.hash_id %}">
+            <div class="bg-gradient-to-t from-[{{mc.theme_color}}] to-fuchsia-50 hover:bg-[{{mc.theme_color}}] text-md text-center py-3 px-8 rounded-t-lg">
+            {{mc.name}}
+            </div>
+        </a>
+    {% endfor %}
+    </div>
+
+    <!-- 主內容卡片 -->
+    <div class="border-4 border-[{{obj_mc.theme_color}}] rounded-2xl p-6">
+        {% if list_sc %}
+        <!-- 課程模組標籤 -->
+        <form>
+        <div class="flex flex-wrap justify-center gap-3 mb-8">
+        {% for sc in list_sc %}
+            <button name="sc" value="{{sc.hash_id}}" type="submit">
+                {% if sc.hash_id == obj_sc.hash_id %}
+                    <div class="bg-[{{obj_mc.theme_color}}] text-white text-center py-3 px-4 rounded-full text-sm font-medium transition-colors hover:bg-gray-200">
+                {% else %}
+                    <div class="bg-cyan-200 text-center py-3 px-4 rounded-full text-sm font-medium transition-colors hover:bg-gray-200">
+                {% endif %}            
+                {{sc.name}}
+                </div>
+            </button>
+        {% endfor %}
+        </div>
+        </form>
+
+        <!-- 課程標題與描述 -->
+        <div class="text-center mb-10">
+            <!-- ========== 新增：圖片展示區（後端 Python 條件判斷） ========== -->
+            <div class="w-full h-[180px] mt-6 flex justify-center">
+                {% if obj_sc.list_photo %}
+                    <!-- 有圖片就顯示 -->
+                    <img src="{{ obj_sc.list_photo.url }}" alt="{{ obj_sc.name }}">
+                {% else %}
+                {% endif %}
+            </div>
+        <h2 class="mt-5 text-2xl font-bold text-[{{obj_mc.theme_color}}] mb-4">{{obj_sc.name}}</h2>
+        <p class="text-gray-600 text-sm leading-relaxed">
+            {{obj_sc.desc | linebreaks}}
+        </p>
+        </div>
+
+        {% if list_course %}
+        <!-- 課程卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for course in list_course %}
+            <a href="{% url "front_web:course" course.hash_id %}">
+
+                {% comment %} <div class="bg-white shadow-md rounded-lg p-6 text-center relative h-full">
+                <!-- 右上角標籤：收生中 -->
+                <div class="absolute top-4 right-4 bg-green-500 text-white text-sm font-medium px-4 py-2 rounded-full">
+                    {{course.course_dynamic_status}}
+                </div>
+                {% endcomment %}
+                <!-- Added glass style outline -->
+                <div class="backdrop-blur-md bg-white/10 p-[8px] rounded-2xl shadow-lg">
+                    <div class="bg-white shadow-md rounded-lg p-6 text-center relative h-full overflow-hidden group">
+                        <!-- 右上角標籤：收生中 -->
+                        <div class="text-right">
+                            {% if course.course_dynamic_status == '報名中' %}
+                            <span class="text-right bg-green-500 text-white text-sm font-medium px-2 py-2 rounded-full z-20">
+                                {{course.course_dynamic_status}}
+                            </span>
+                            {% elif course.course_dynamic_status == '人數已滿' %}
+                            <span class="text-right bg-red-500 text-white text-sm font-medium px-2 py-2 rounded-full z-20">
+                                {{course.course_dynamic_status}}
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- 課程文字內容 (置頂層級，不會被圖片遮擋) -->
+                        <div class="text-lg font-medium my-4 mx-5 relative z-10">
+                            {% if course.age_group %}
+                            {{course.age_group}}<br>
+                            {% endif %}
+                            <!-- 名稱最多顯示3行，超出隱藏 -->
+                            <div class="line-clamp-3 text-break">
+                                {{ course.name }}
+                            </div>
+                            <div class="line-clamp-3 text-break text-sm text-gray-500">
+                                ({{ course.code }})
+                            </div>
+                            <div class="line-clamp-3 text-break">
+                                {{ course.lesson_weekday_pattern }}
+                            </div>
+                        </div>
+
+                        <!-- 小熊圖片：最底層 z-0，不遮擋任何內容 -->
+                        <img 
+                            src="{% static 'img/icon/Playgroup_bear.png' %}" 
+                            class="absolute bottom-0 left-0 h-20 w-auto z-0 translate-y-1/2 group-hover:translate-y-0 transition-all duration-300" 
+                            alt="">
+                    </div>
+                </div>
+            </a>
+        {% endfor %}
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

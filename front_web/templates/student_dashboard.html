@@ -1,0 +1,150 @@
+{% extends "base.html" %} 
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<!-- 1.2 background -->
+<div class="relative h-[120px] bg-cover bg-center" 
+    style="background-image: url('{% static "img/banner/news_banner.png" %}');">
+</div>
+
+<!-- 2. Page Content -->
+<!-- 我的課堂區塊 -->
+<section class="py-10 px-4">
+  <div class="max-w-6xl mx-auto">
+    <!-- 問候文字 -->
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 mb-2">Hello, {{request.session.student_name}}!</h1>
+      <p class="text-gray-500 mb-4">
+        歡迎回來！準備好展開今日的學習旅程了嗎？
+      </p>
+    </div>
+    
+    <!-- 標籤切換: 我的課堂 -->
+    <form>
+    <div class="flex gap-4 mb-8">
+      <!-- 新增：前往行事曆按鈕 -->
+      <a href="{% url 'front_web:student_my_calendar' %}" 
+        class="inline-flex items-center gap-2 bg-sky-700 text-white font-medium px-6 py-3 rounded-full hover:bg-sky-400 transition-colors">
+        <i class="fa-solid fa-calendar-days"></i>
+        我的日曆
+      </a>
+      <button name="ListMode" value="CurrentCourse" type="submit" 
+      {% if list_mode == "CurrentCourse" %}
+      class="tab-btn bg-gray-200 text-gray-800 font-medium px-8 py-3 rounded-full" 
+      {% else %}
+      class="tab-btn bg-white text-gray-600 font-medium px-8 py-3 rounded-full border"
+      {% endif %}>我的課堂</button>
+
+      <button name="ListMode" value="PastCourse" type="submit" 
+      {% if list_mode == "PastCourse" %}
+      class="tab-btn bg-gray-200 text-gray-800 font-medium px-8 py-3 rounded-full" 
+      {% else %}
+      class="tab-btn bg-white text-gray-600 font-medium px-8 py-3 rounded-full border"
+      {% endif %}>歷史紀錄</button>
+
+      <button name="ListMode" value="PaymentHistory" type="submit" 
+      {% if list_mode == "PaymentHistory" %}
+      class="tab-btn bg-gray-200 text-gray-800 font-medium px-8 py-3 rounded-full" 
+      {% else %}
+      class="tab-btn bg-white text-gray-600 font-medium px-8 py-3 rounded-full border"
+      {% endif %}>付款紀錄</button>
+    </div>
+    </from>
+
+  <!-- 我的課堂： 課程卡片列表 -->
+  {% if list_mode == "CurrentCourse" or list_mode == "PastCourse" %}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-5">
+    {% if list_course %}
+      {% for course in list_course %}
+      <div class="bg-white shadow-lg rounded-xl p-6 border">
+        <div class="text-left mb-5">
+            {% if course.course_dynamic_status == '報名中' %}
+            <span class="text-right bg-green-500 text-white text-sm font-medium px-2 py-2 rounded-full z-20">
+                {{course.course_dynamic_status}}
+            </span>
+            {% elif course.course_dynamic_status == '人數已滿' %}
+            <span class="text-right bg-red-500 text-white text-sm font-medium px-2 py-2 rounded-full z-20">
+                {{course.course_dynamic_status}}
+            </span>
+            {% elif course.course_dynamic_status == '截止報名' %}
+            <span class="text-right bg-orange-500 text-white text-sm font-medium px-2 py-2 rounded-full z-20">
+                {{course.course_dynamic_status}}
+            </span>
+            {% elif course.course_dynamic_status == '進行中' %}
+            <span class="text-right bg-blue-500 text-white text-sm font-medium px-2 py-2 rounded-full z-20">
+                {{course.course_dynamic_status}}
+            </span>
+            {% else %}
+            <span class="text-right bg-gray-500 text-white text-sm font-medium px-2 py-2 rounded-full z-20">
+                {{course.course_dynamic_status}}
+            </span>
+            {% endif %}
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 mb-1">{{course.name}}</h3>
+        <p class="text-gray-600 text-sm mb-6">課程編號: {{course.code}}</p>
+        
+        <div class="space-y-4">
+          <div class="flex items-center gap-4">
+            <i class="fa-solid fa-calendar text-2xl text-gray-700"></i>
+            <span class="text-md text-gray-800">{{course.period_from | date:"d/m/Y"}} - {{course.period_to | date:"d/m/Y"}}</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <i class="fa-solid fa-clock text-2xl text-gray-700"></i>
+            <span class="text-md text-gray-800">{{course.time_from | date:"H:i"}}-{{course.time_to | date:"H:i"}}</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <i class="fa-solid fa-book text-2xl text-gray-700"></i>
+            <span class="text-xl text-gray-800">{% if course.lesson_weekday_pattern %}{{course.lesson_weekday_pattern}}，{% endif %}共{{course.total_lessons | floatformat:0}}堂</span>
+          </div>    
+        </div>
+      </div>
+      {% endfor %}
+    {% endif %}  
+    {% else %}
+    {% comment %} Payment History {% endcomment %}
+    <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden mb-5">
+    <div class="overflow-x-auto w-full pb-4">
+  <table class="w-full text-left border-collapse">
+    <thead>
+      <tr class="bg-gray-50 text-gray-600 border-b border-gray-200 text-sm">
+        <th class="p-4 font-medium whitespace-nowrap min-w-[80px]">訂單編號</th>
+        <th class="p-4 font-medium min-w-[180px]">課程名稱</th>
+        <th class="p-4 font-medium whitespace-nowrap min-w-[100px]">付款日期</th>
+        <th class="p-4 font-medium whitespace-nowrap min-w-[100px]">實付金額</th>
+        <th class="p-4 font-medium text-center whitespace-nowrap min-w-[100px]">操作</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 text-gray-700">
+      {% for trans in list_trans %}
+      <tr class="hover:bg-gray-50 transition-colors">
+        <td class="p-4 font-mono text-sm text-gray-500 whitespace-nowrap max-w-[180px] overflow-hidden text-ellipsis">#{{trans.trans_ref}}</td>
+        <td class="p-4 font-bold text-sm text-gray-900 whitespace-nowrap max-w-[180px] overflow-hidden text-ellipsis">{{trans.course_name}}</td>
+        <td class="p-4 text-sm whitespace-nowrap">{{trans.trans_date | date:"d/m/Y"}}</td>
+        <td class="p-4 text-sm font-medium whitespace-nowrap {% if trans.record_type == 'payment' %}text-[#2ec4b6]{% else %}text-[#FF5D42]{% endif %}">
+          ${{trans.trans_amount}}
+        </td>
+        <td class="p-4 text-center whitespace-nowrap">
+          {% if trans.record_type == "payment" %}
+          <a href="{% url 'front_web:download_payment_receipt' trans.sign_up_id %}" target="_blank" 
+            class="inline-block border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white px-4 py-1.5 rounded-md text-sm transition-colors">
+            <i class="fa-solid fa-file-invoice"></i> 收據
+          </a>
+          {% else %}
+          <a href="{% url 'front_web:download_refund_receipt' trans.refund_id %}" target="_blank" 
+            class="inline-block border border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-4 py-1.5 rounded-md text-sm transition-colors">
+            <i class="fa-solid fa-file-invoice"></i> 退款單
+          </a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+    </div>
+  {% endif %}
+
+  </div>
+</section>
+{% endblock %}
