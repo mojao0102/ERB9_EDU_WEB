@@ -101,12 +101,12 @@ LOGIN_URL = '/admin/login/'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'NGO_WEB',
-        'USER': 'postgres',
-        'PASSWORD': '1156',
-        'HOST': 'localhost',
-        'PORT': '5432'
+        'ENGINE': os.getenv('DB_ENGINE'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_LOGIN_ID'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT')
     }
 }
 
